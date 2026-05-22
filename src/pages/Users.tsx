@@ -1,0 +1,359 @@
+import React, { useState, useEffect } from 'react';
+import { Users as UsersIcon, Plus, Edit2, Trash2, Key, Shield, UserX, Search } from 'lucide-react';
+import Swal from 'sweetalert2';
+import { safeFetchJson } from '@/src/lib/utils';
+
+interface User {
+  id: number;
+  username: string;
+  role: string;
+}
+
+export default function Users() {
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+
+  const fetchUsers = async () => {
+    try {
+      const res = await fetch('/api/users');
+      const data = await safeFetchJson(res, []);
+      setUsers(data);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const handleAddUser = () => {
+    Swal.fire({
+      title: 'Tambah Pengguna Baru',
+      html: `
+        <div class="space-y-4 text-left">
+          <div>
+            <label class="block text-xs font-semibold text-gray-400 mb-1">Username</label>
+            <input id="swal-username" class="swal2-input !m-0 !w-full bg-gray-900 border border-gray-700 text-white rounded-xl" placeholder="Masukkan username">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-400 mb-1">Password</label>
+            <input id="swal-password" type="password" class="swal2-input !m-0 !w-full bg-gray-900 border border-gray-700 text-white rounded-xl" placeholder="Masukkan password">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-400 mb-1">Hak Akses / Role</label>
+            <select id="swal-role" class="swal2-select !m-0 !w-full bg-gray-900 border border-gray-700 text-white rounded-xl pb-2">
+              <option value="user">Anggota Sekretariat</option>
+              <option value="admin">Admin (Sekretaris / Pengurus)</option>
+            </select>
+          </div>
+        </div>
+      `,
+      focusConfirm: false,
+      background: '#111827',
+      color: '#fff',
+      confirmButtonColor: '#3b82f6',
+      confirmButtonText: 'Simpan',
+      showCancelButton: true,
+      cancelButtonText: 'Batal',
+      preConfirm: () => {
+        const username = (document.getElementById('swal-username') as HTMLInputElement).value.trim();
+        const password = (document.getElementById('swal-password') as HTMLInputElement).value;
+        const role = (document.getElementById('swal-role') as HTMLSelectElement).value;
+
+        if (!username || !password) {
+          Swal.showValidationMessage('Username dan Password wajib diisi');
+          return false;
+        }
+        return { username, password, role };
+      }
+    }).then(async (result) => {
+      if (result.isConfirmed && result.value) {
+        try {
+          const res = await fetch('/api/users', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(result.value),
+          });
+          const data = await safeFetchJson(res, { error: 'Gagal menambah pengguna' });
+          if (res.ok) {
+            Swal.fire({
+              icon: 'success',
+              title: 'Berhasil',
+              text: 'Pengguna baru berhasil ditambahkan!',
+              background: '#111827',
+              color: '#fff',
+              confirmButtonColor: '#3b82f6'
+            });
+            fetchUsers();
+          } else {
+            Swal.fire({
+              icon: 'error',
+              title: 'Gagal',
+              text: data.error || 'Terjadi kesalahan sistem',
+              background: '#111827',
+              color: '#fff',
+              confirmButtonColor: '#ef4444'
+            });
+          }
+        } catch (err) {
+          console.error(err);
+        }
+      }
+    });
+  };
+
+  const handleEditUser = (user: User) => {
+    Swal.fire({
+      title: 'Edit Pengguna',
+      html: `
+        <div class="space-y-4 text-left">
+          <div>
+            <label class="block text-xs font-semibold text-gray-400 mb-1">Username</label>
+            <input id="swal-username" value="${user.username}" class="swal2-input !m-0 !w-full bg-gray-900 border border-gray-700 text-white rounded-xl" placeholder="Masukkan username">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-400 mb-1">Password Baru (Kosongkan jika tidak diganti)</label>
+            <input id="swal-password" type="password" class="swal2-input !m-0 !w-full bg-gray-900 border border-gray-700 text-white rounded-xl" placeholder="Ganti password (opsional)">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-400 mb-1">Hak Akses / Role</label>
+            <select id="swal-role" class="swal2-select !m-0 !w-full bg-gray-900 border border-gray-700 text-white rounded-xl pb-2">
+              <option value="user" ${user.role === 'user' ? 'selected' : ''}>Anggota Sekretariat</option>
+              <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Admin (Sekretaris / Pengurus)</option>
+            </select>
+          </div>
+        </div>
+      `,
+      focusConfirm: false,
+      background: '#111827',
+      color: '#fff',
+      confirmButtonColor: '#3b82f6',
+      confirmButtonText: 'Update',
+      showCancelButton: true,
+      cancelButtonText: 'Batal',
+      preConfirm: () => {
+        const username = (document.getElementById('swal-username') as HTMLInputElement).value.trim();
+        const password = (document.getElementById('swal-password') as HTMLInputElement).value;
+        const role = (document.getElementById('swal-role') as HTMLSelectElement).value;
+
+        if (!username) {
+          Swal.showValidationMessage('Username tidak boleh kosong');
+          return false;
+        }
+        return { username, password: password || undefined, role };
+      }
+    }).then(async (result) => {
+      if (result.isConfirmed && result.value) {
+        try {
+          const res = await fetch(`/api/users/${user.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(result.value),
+          });
+          const data = await safeFetchJson(res, { error: 'Gagal merubah data pengguna' });
+          if (res.ok) {
+            Swal.fire({
+              icon: 'success',
+              title: 'Diperbarui',
+              text: 'Data pengguna berhasil diubah!',
+              background: '#111827',
+              color: '#fff',
+              confirmButtonColor: '#3b82f6'
+            });
+            fetchUsers();
+          } else {
+            Swal.fire({
+              icon: 'error',
+              title: 'Gagal',
+              text: data.error || 'Terjadi kesalahan sistem',
+              background: '#111827',
+              color: '#fff',
+              confirmButtonColor: '#ef4444'
+            });
+          }
+        } catch (err) {
+          console.error(err);
+        }
+      }
+    });
+  };
+
+  const handleDeleteUser = (user: User) => {
+    if (user.username === 'admin') {
+      Swal.fire({
+        icon: 'error',
+        title: 'Pembatasan',
+        text: 'Akun admin utama tidak bisa dihapus!',
+        background: '#111827',
+        color: '#fff',
+        confirmButtonColor: '#ef4444'
+      });
+      return;
+    }
+
+    Swal.fire({
+      title: 'Hapus Pengguna?',
+      text: `Apakah Anda yakin ingin menghapus user "${user.username}"?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#3b82f6',
+      confirmButtonText: 'Ya, hapus!',
+      cancelButtonText: 'Batal',
+      background: '#111827',
+      color: '#fff',
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          const res = await fetch(`/api/users/${user.id}`, { method: 'DELETE' });
+          const data = await safeFetchJson(res, { error: 'Gagal menghapus pengguna' });
+          if (res.ok) {
+            Swal.fire({
+              icon: 'success',
+              title: 'Terhapus',
+              text: 'Pengguna berhasil dihapus',
+              background: '#111827',
+              color: '#fff',
+              confirmButtonColor: '#3b82f6'
+            });
+            fetchUsers();
+          } else {
+            Swal.fire({
+              icon: 'error',
+              title: 'Gagal',
+              text: data.error || 'Gagal menghapus pengguna',
+              background: '#111827',
+              color: '#fff',
+              confirmButtonColor: '#ef4444'
+            });
+          }
+        } catch (err) {
+          console.error(err);
+        }
+      }
+    });
+  };
+
+  const filteredUsers = users.filter(u => 
+    u.username.toLowerCase().includes(search.toLowerCase()) || 
+    u.role.toLowerCase().includes(search.toLowerCase())
+  );
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h2 className="text-2xl font-bold dark:text-white flex items-center gap-2">
+            <UsersIcon className="text-blue-500 animate-pulse" /> Kelola Pengguna OSIM
+          </h2>
+          <p className="text-gray-500 dark:text-gray-400 mt-1">Mengatur daftar anggota, edit password, dan hak akses</p>
+        </div>
+        
+        <button 
+          onClick={handleAddUser} 
+          className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white px-4 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-lg shadow-blue-500/30"
+        >
+          <Plus size={18} /> Tambah Anggota
+        </button>
+      </div>
+
+      <div className="bg-white/5 dark:bg-gray-900/50 backdrop-blur-xl border border-gray-200 dark:border-gray-800 rounded-3xl overflow-hidden shadow-2xl">
+         <div className="p-5 border-b border-gray-200 dark:border-gray-800 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div className="relative w-full sm:max-w-sm">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Search size={18} className="text-gray-500" />
+                </div>
+                <input 
+                    type="text" 
+                    placeholder="Cari user OSIM..." 
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-gray-950/50 border border-gray-200 dark:border-gray-700/60 rounded-xl focus:ring-2 focus:ring-blue-500/50 outline-none transition-all dark:text-white placeholder-gray-500"
+                />
+            </div>
+            <div className="text-sm text-gray-500 font-mono">
+              Total: {filteredUsers.length} Pengguna
+            </div>
+         </div>
+         
+         <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm whitespace-nowrap">
+                <thead className="bg-gray-50 dark:bg-gray-800/40 text-gray-600 dark:text-gray-300 font-semibold">
+                    <tr>
+                        <th className="px-6 py-4">USERNAME</th>
+                        <th className="px-6 py-4">ROLE HAK AKSES</th>
+                        <th className="px-6 py-4">SISTEM STATUS</th>
+                        <th className="px-6 py-4 text-center">AKSI MANAJEMEN</th>
+                    </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
+                    {loading ? (
+                        <tr>
+                          <td colSpan={4} className="p-12 text-center text-gray-500">
+                            <div className="inline-block w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mb-2"></div>
+                            <p>Mengambil data user...</p>
+                          </td>
+                        </tr>
+                    ) : filteredUsers.length === 0 ? (
+                        <tr>
+                          <td colSpan={4} className="p-12 text-center text-gray-500">
+                            <UserX className="mx-auto text-gray-600 mb-2" size={32} />
+                            <p>Tidak ada pengguna ditemukan.</p>
+                          </td>
+                        </tr>
+                    ) : filteredUsers.map((userItem) => (
+                        <tr key={userItem.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/20 transition-colors">
+                            <td className="px-6 py-4">
+                              <div className="flex items-center space-x-3">
+                                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500/20 to-purple-600/20 border border-blue-500/30 flex items-center justify-center font-bold text-blue-400">
+                                  {userItem.username.charAt(0).toUpperCase()}
+                                </div>
+                                <span className="font-semibold dark:text-white">{userItem.username}</span>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 dark:text-gray-300">
+                                <span className={`px-3.5 py-1.5 rounded-full text-xs font-semibold flex items-center w-fit gap-1.5 ${
+                                    userItem.role === 'admin' 
+                                      ? 'bg-purple-500/15 text-purple-400 border border-purple-500/30' 
+                                      : 'bg-blue-500/15 text-blue-400 border border-blue-500/30'
+                                }`}>
+                                    <Shield size={12} />
+                                    {userItem.role === 'admin' ? 'Admin / Pengurus' : 'Anggota Sekretariat'}
+                                </span>
+                            </td>
+                            <td className="px-6 py-4">
+                                <span className="px-2 py-1 bg-emerald-500/10 text-emerald-400 text-xs font-mono rounded border border-emerald-500/20">
+                                    ● Aktif Sesi
+                                </span>
+                            </td>
+                            <td className="px-6 py-4 text-center">
+                              <div className="flex justify-center items-center gap-1">
+                                <button 
+                                  onClick={() => handleEditUser(userItem)}
+                                  className="p-2 text-gray-400 hover:text-blue-500 hover:bg-blue-500/10 rounded-lg transition-all"
+                                  title="Edit Pengguna & Password"
+                                >
+                                  <Edit2 size={16} />
+                                </button>
+                                <button 
+                                  onClick={() => handleDeleteUser(userItem)}
+                                  className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all"
+                                  title="Hapus Pengguna"
+                                >
+                                  <Trash2 size={16} />
+                                </button>
+                              </div>
+                            </td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+         </div>
+      </div>
+    </div>
+  );
+}
