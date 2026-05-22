@@ -251,20 +251,40 @@ export default function Piket() {
       return;
     }
 
+    const defaultTemplate = `Halo ${item.nama}, hari ini jadwal piket Anda hari ${item.hari}, tanggal ${item.tanggal || '-'} jam ${item.jam}. Tugas Anda: ${item.tugas}. Mohon kehadirannya tepat waktu.`;
+
     Swal.fire({
-      title: 'Kirim Reminder WA?',
-      text: `Akan mengirim pesan otomatis ke ${item.nama} (${item.nomor_wa})`,
-      icon: 'info',
+      title: 'Kirim & Edit Reminder WA',
+      html: `
+        <div class="text-left mb-4">
+          <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Penerima</label>
+          <div class="px-3 py-2 bg-gray-800 border border-gray-700 rounded-xl text-sm font-semibold text-white">
+            ${item.nama} (${item.nomor_wa})
+          </div>
+        </div>
+        <div class="text-left">
+          <label for="swal-message-input" class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Pariwara / Isi Pesan</label>
+          <textarea id="swal-message-input" class="w-full h-36 p-3 text-sm bg-gray-850 border border-gray-750 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-xl text-white outline-none resize-none" placeholder="Tulis pesan Anda disini...">${defaultTemplate}</textarea>
+        </div>
+      `,
       showCancelButton: true,
       confirmButtonColor: '#10b981',
       cancelButtonColor: '#3b82f6',
-      confirmButtonText: 'Kirim Pesan',
+      confirmButtonText: 'Kirim Sekarang',
       cancelButtonText: 'Batal',
       background: '#111827',
-      color: '#fff'
+      color: '#fff',
+      preConfirm: () => {
+        const textarea = document.getElementById('swal-message-input') as HTMLTextAreaElement;
+        const value = textarea ? textarea.value.trim() : '';
+        if (!value) {
+          Swal.showValidationMessage('Isi pesan tidak boleh kosong!');
+        }
+        return value;
+      }
     }).then(async (result) => {
-      if (result.isConfirmed) {
-        const messageBody = `Halo ${item.nama}, hari ini jadwal piket Anda hari ${item.hari}, tanggal ${item.tanggal || '-'} jam ${item.jam}. Tugas Anda: ${item.tugas}. Mohon kehadirannya tepat waktu.`;
+      if (result.isConfirmed && result.value) {
+        const messageBody = result.value;
         
         const isServerless = localStorage.getItem('osim_serverless_mode') === 'true';
 

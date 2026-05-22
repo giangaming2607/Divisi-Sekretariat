@@ -53,14 +53,14 @@ export default function WaBot() {
     if (serverlessMode) {
       Swal.fire({
         icon: 'info',
-        title: '⚠️ Info Hosting Serverless (Vercel)',
+        title: '⚠️ Info Hosting Static (Vercel / Netlify)',
         html: `
           <div class="text-left space-y-3 font-medium text-xs sm:text-sm text-gray-300 leading-relaxed">
-            <p>Aplikasi ini dideploy di <b>Vercel</b> yang merupakan platform static hosting gratis.</p>
-            <p>Vercel <b>tidak mendukung</b> running background process persisten untuk menjalankan <b>Bot WhatsApp Otomatis</b>.</p>
+            <p>Aplikasi ini dideploy di <b>Vercel / Netlify</b> yang merupakan platform static hosting gratis.</p>
+            <p>Platform static hosting <b>tidak mendukung</b> running background process persisten untuk menjalankan <b>Bot WhatsApp Otomatis</b>.</p>
             <p><b>Solusi Untuk Anda:</b></p>
             <ol class="list-decimal pl-4 space-y-2 text-xs">
-              <li><b>Gunakan Mode Serverless (Link Direct):</b> Anda tetap bisa mengirim pesan reminder piket secara gratis menggunakan link redirect browser (pilih tab hijau di atas).</li>
+              <li><b>Gunakan Mode Serverless (Link Direct):</b> Anda tetap bisa mengirim pesan reminder piket secara gratis menggunakan link redirect browser (pilih opsi hijau di atas).</li>
               <li><b>Deploy ke Render / Railway:</b> Jika ingin bot server otomatis berjalan 24/7 di background tanpa buka browser, deploy ke Render/Railway gratis mengikuti panduan <b>TUTORIAL_DEPLOY.md</b> di file project.</li>
             </ol>
           </div>
@@ -265,9 +265,9 @@ export default function WaBot() {
         <div className="bg-blue-600/10 border border-blue-500/20 text-blue-800 dark:text-blue-300 rounded-2xl p-5 flex items-start gap-4 shadow-sm animate-fade-in">
           <AlertCircle size={24} className="text-blue-500 shrink-0 mt-0.5" />
           <div className="text-sm">
-            <h4 className="font-bold text-blue-900 dark:text-blue-200 mb-1">ℹ️ Deteksi Serverless Teraktifkan (Vercel / Static Host)</h4>
+            <h4 className="font-bold text-blue-900 dark:text-blue-200 mb-1">ℹ️ Deteksi Serverless Teraktifkan (Vercel / Netlify / Static Host)</h4>
             <p className="leading-relaxed opacity-90">
-              Sistem mendeteksi bahwa aplikasi ini berjalan di hosting statis (Vercel/Github Pages). Karena hosting statis tidak mendukung server Node.js di background untuk menghubungkan sesi WhatsApp secara mandiri, <strong>Mode Link Direct Browser otomatis diaktifkan untuk Anda.</strong>
+              Sistem mendeteksi bahwa aplikasi ini berjalan di hosting statis (seperti Vercel, Netlify, atau Github Pages). Karena hosting statis tidak mendukung server Node.js di background untuk menghubungkan sesi WhatsApp secara mandiri, <strong>Mode Link Direct Browser otomatis diaktifkan untuk Anda.</strong>
             </p>
             <p className="mt-2 text-xs font-semibold text-blue-700 dark:text-blue-400">
                ✓ Anda tetap dapat mengirim pengingat jadwal piket secara praktis! Sistem akan mengarahkan pesan langsung ke WhatsApp Web / aplikasi di HP Anda.
