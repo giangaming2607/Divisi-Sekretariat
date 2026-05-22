@@ -239,6 +239,7 @@ export interface InventarisItem {
   kategori: string;
   kondisi: string;
   status: string;
+  jumlah: number;
 }
 
 export async function clientGetInventaris(): Promise<InventarisItem[]> {
@@ -250,7 +251,8 @@ export async function clientGetInventaris(): Promise<InventarisItem[]> {
       nama: data.nama || '',
       kategori: data.kategori || '',
       kondisi: data.kondisi || '',
-      status: data.status || ''
+      status: data.status || '',
+      jumlah: data.jumlah !== undefined ? Number(data.jumlah) : 1
     };
   }).sort((a, b) => b.id - a.id);
 }

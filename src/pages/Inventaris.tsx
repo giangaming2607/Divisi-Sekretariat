@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { PackageSearch, Plus, Edit, Trash2, Search } from 'lucide-react';
+import { PackageSearch, Plus, Edit, Trash2, Search, FileSpreadsheet } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { useAuthStore } from '@/src/lib/store';
 import { 
@@ -17,6 +17,7 @@ interface Item {
   kategori: string;
   kondisi: string;
   status: string;
+  jumlah: number;
 }
 
 export default function Inventaris() {
@@ -116,6 +117,10 @@ export default function Inventaris() {
               <input id="swal-nama" class="swal2-input !m-0 !w-full bg-gray-900 border border-gray-700 text-white rounded-xl" placeholder="Nama Barang" value="${item.nama}">
             </div>
             <div>
+              <label class="block text-xs font-semibold text-gray-400 mb-1">Jumlah / Stok</label>
+              <input id="swal-jumlah" type="number" min="1" class="swal2-input !m-0 !w-full bg-gray-900 border border-gray-700 text-white rounded-xl" placeholder="Contoh: 10" value="${item.jumlah || 1}">
+            </div>
+            <div>
               <label class="block text-xs font-semibold text-gray-400 mb-1">Kategori</label>
               <select id="swal-kategori" class="swal2-select !m-0 !w-full bg-gray-900 border border-gray-700 text-white rounded-xl pb-2">
                   ${catOptions}
@@ -147,15 +152,22 @@ export default function Inventaris() {
         confirmButtonText: 'Simpan',
         preConfirm: () => {
           const nama = (document.getElementById('swal-nama') as HTMLInputElement).value.trim();
+          const jumlahVal = (document.getElementById('swal-jumlah') as HTMLInputElement).value;
           const kategori = (document.getElementById('swal-kategori') as HTMLSelectElement).value;
           const kondisi = (document.getElementById('swal-kondisi') as HTMLSelectElement).value;
           const status = (document.getElementById('swal-status') as HTMLSelectElement).value;
+
+          const jumlah = Number(jumlahVal) || 1;
 
           if (!nama) {
             Swal.showValidationMessage('Nama barang wajib diisi');
             return false;
           }
-          return { nama, kategori, kondisi, status };
+          if (jumlah < 1) {
+            Swal.showValidationMessage('Jumlah barang minimal 1');
+            return false;
+          }
+          return { nama, jumlah, kategori, kondisi, status };
         }
     }).then(async (result) => {
         if (result.isConfirmed && result.value) {
@@ -214,6 +226,10 @@ export default function Inventaris() {
               <input id="swal-nama" class="swal2-input !m-0 !w-full bg-gray-900 border border-gray-700 text-white rounded-xl" placeholder="Nama Barang">
             </div>
             <div>
+              <label class="block text-xs font-semibold text-gray-400 mb-1">Jumlah / Stok</label>
+              <input id="swal-jumlah" type="number" min="1" value="1" class="swal2-input !m-0 !w-full bg-gray-900 border border-gray-700 text-white rounded-xl" placeholder="Contoh: 1">
+            </div>
+            <div>
               <label class="block text-xs font-semibold text-gray-400 mb-1">Kategori</label>
               <select id="swal-kategori" class="swal2-select !m-0 !w-full bg-gray-900 border border-gray-700 text-white rounded-xl pb-2">
                   ${catOptions}
@@ -245,15 +261,22 @@ export default function Inventaris() {
         confirmButtonText: 'Simpan',
         preConfirm: () => {
           const nama = (document.getElementById('swal-nama') as HTMLInputElement).value.trim();
+          const jumlahVal = (document.getElementById('swal-jumlah') as HTMLInputElement).value;
           const kategori = (document.getElementById('swal-kategori') as HTMLSelectElement).value;
           const kondisi = (document.getElementById('swal-kondisi') as HTMLSelectElement).value;
           const status = (document.getElementById('swal-status') as HTMLSelectElement).value;
+
+          const jumlah = Number(jumlahVal) || 1;
 
           if (!nama) {
             Swal.showValidationMessage('Nama barang wajib diisi');
             return false;
           }
-          return { nama, kategori, kondisi, status };
+          if (jumlah < 1) {
+            Swal.showValidationMessage('Jumlah barang minimal 1');
+            return false;
+          }
+          return { nama, jumlah, kategori, kondisi, status };
         }
     }).then(async (result) => {
         if (result.isConfirmed && result.value) {
@@ -282,6 +305,63 @@ export default function Inventaris() {
     });
   };
 
+  const handleExportExcel = () => {
+    if (filteredItems.length === 0) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Data Kosong',
+        text: 'Tidak ada data inventaris untuk diexport!',
+        background: '#111827',
+        color: '#fff',
+        confirmButtonColor: '#3b82f6'
+      });
+      return;
+    }
+
+    // Headers list
+    const headers = ['No', 'Nama Barang', 'Kategori', 'Jumlah / Stok', 'Kondisi', 'Status'];
+    
+    // Rows mapping
+    const csvRows = [
+      headers.join(','), // Header row
+      ...filteredItems.map((item, index) => {
+        const safeNama = `"${item.nama.replace(/"/g, '""')}"`;
+        const safeKategori = `"${item.kategori.replace(/"/g, '""')}"`;
+        const safeKondisi = `"${item.kondisi.replace(/"/g, '""')}"`;
+        const safeStatus = `"${item.status.replace(/"/g, '""')}"`;
+        return [
+          index + 1,
+          safeNama,
+          safeKategori,
+          item.jumlah || 1,
+          safeKondisi,
+          safeStatus
+        ].join(',');
+      })
+    ];
+
+    // CSV containing Byte Order Mark for Excel so Unicode and separation works flawlessly
+    const csvContent = '\uFEFF' + csvRows.join('\r\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `Inventaris_OSIM_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    Swal.fire({
+      icon: 'success',
+      title: 'Berhasil!',
+      text: 'File Excel (CSV) berhasil digenerate dan diunduh.',
+      background: '#111827',
+      color: '#fff',
+      confirmButtonColor: '#10b981'
+    });
+  };
+
   const filteredItems = items.filter(i => i.nama.toLowerCase().includes(search.toLowerCase()));
 
   return (
@@ -294,11 +374,16 @@ export default function Inventaris() {
           <p className="text-gray-500 dark:text-gray-400 mt-1">Kelola data barang sekretariat OSIM</p>
         </div>
         
-        {user?.role === 'admin' && (
-          <button onClick={handleAdd} className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white px-4 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-lg shadow-blue-500/30">
-             <Plus size={20} /> Tambah Barang
+        <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+          <button onClick={handleExportExcel} className="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-lg shadow-emerald-500/30 font-medium">
+             <FileSpreadsheet size={18} /> Export Excel
           </button>
-        )}
+          {user?.role === 'admin' && (
+            <button onClick={handleAdd} className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white px-4 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-lg shadow-blue-500/30 font-medium">
+               <Plus size={18} /> Tambah Barang
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="bg-white/5 dark:bg-gray-900/50 backdrop-blur-xl border border-gray-200 dark:border-gray-800 rounded-3xl overflow-hidden shadow-2xl">
@@ -326,6 +411,7 @@ export default function Inventaris() {
                     <tr>
                         <th className="px-6 py-4">NAMA BARANG</th>
                         <th className="px-6 py-4">KATEGORI</th>
+                        <th className="px-6 py-4">JUMLAH</th>
                         <th className="px-6 py-4">KONDISI</th>
                         <th className="px-6 py-4">STATUS</th>
                         {user?.role === 'admin' && <th className="px-6 py-4 text-center">AKSI</th>}
@@ -334,14 +420,14 @@ export default function Inventaris() {
                 <tbody className="divide-y divide-gray-200 dark:divide-gray-800 font-medium">
                     {loading ? (
                         <tr>
-                          <td colSpan={user?.role === 'admin' ? 5 : 4} className="p-12 text-center text-gray-500">
+                          <td colSpan={user?.role === 'admin' ? 6 : 5} className="p-12 text-center text-gray-500">
                             <div className="inline-block w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mb-2"></div>
                             <p>Membuat data barang...</p>
                           </td>
                         </tr>
                     ) : filteredItems.length === 0 ? (
                         <tr>
-                          <td colSpan={user?.role === 'admin' ? 5 : 4} className="p-12 text-center text-gray-500">
+                          <td colSpan={user?.role === 'admin' ? 6 : 5} className="p-12 text-center text-gray-500">
                             Tidak ada data inventaris ditemukan.
                           </td>
                         </tr>
@@ -350,6 +436,9 @@ export default function Inventaris() {
                             <td className="px-6 py-4 font-semibold dark:text-white">{item.nama}</td>
                             <td className="px-6 py-4 dark:text-gray-300">
                                 <span className="px-3.5 py-1.5 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-xl text-xs">{item.kategori}</span>
+                            </td>
+                            <td className="px-6 py-4">
+                                <span className="px-3 py-1 bg-purple-500/10 text-purple-400 border border-purple-500/20 rounded-xl font-mono text-xs">{item.jumlah || 1} Pcs</span>
                             </td>
                             <td className="px-6 py-4">
                                 <span className={`px-3.5 py-1.5 rounded-xl text-xs border ${
