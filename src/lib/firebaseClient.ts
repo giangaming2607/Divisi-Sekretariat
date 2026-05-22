@@ -201,6 +201,19 @@ export async function clientDeleteInventaris(id: number): Promise<void> {
   await deleteDoc(doc(db, 'inventaris', String(id)));
 }
 
+export async function clientUpdateInventaris(id: number, item: Partial<Omit<InventarisItem, 'id'>>): Promise<void> {
+  const docRef = doc(db, 'inventaris', String(id));
+  const snap = await getDoc(docRef);
+  if (!snap.exists()) {
+    throw new Error('Barang tidak ditemukan');
+  }
+  const existing = snap.data();
+  await setDoc(docRef, {
+    ...existing,
+    ...item
+  });
+}
+
 /**
  * ----------------- PIKET OPERATIONS -----------------
  */

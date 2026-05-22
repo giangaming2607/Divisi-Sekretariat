@@ -9,7 +9,7 @@ import { cn } from '@/src/lib/utils';
 import Swal from 'sweetalert2';
 
 export default function Layout() {
-  const [isSidebarOpen, setSidebarOpen] = useState(true);
+  const [isSidebarOpen, setSidebarOpen] = useState(false);
   const { user, setUser } = useAuthStore();
   const { theme, toggleTheme } = useThemeStore();
   const navigate = useNavigate();
@@ -18,6 +18,19 @@ export default function Layout() {
   useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark');
   }, [theme]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) {
+        setSidebarOpen(true);
+      } else {
+        setSidebarOpen(false);
+      }
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const navItems = [
     { label: 'Dashboard', path: '/', icon: LayoutDashboard },
@@ -49,15 +62,22 @@ export default function Layout() {
 
   return (
     <div className={cn(
-      "min-h-screen flex transition-colors duration-300",
+      "min-h-screen flex transition-colors duration-300 relative",
       theme === 'dark' ? "bg-gray-950 text-white" : "bg-gray-50 text-gray-900"
     )}>
+      {/* Mobile Sidebar Overlay */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden backdrop-blur-sm transition-opacity duration-300"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
       <aside className={cn(
-        "fixed inset-y-0 left-0 z-50 w-64 transform transition-transform duration-300 ease-in-out border-r backdrop-blur-md",
-        theme === 'dark' ? "bg-gray-900/80 border-gray-800" : "bg-white/80 border-gray-200",
-        isSidebarOpen ? "translate-x-0" : "-translate-x-full",
-        "relative rounded-r-3xl glass-panel shadow-2xl"
+        "fixed inset-y-0 left-0 z-50 w-64 transform transition-transform duration-300 ease-in-out border-r backdrop-blur-md rounded-r-3xl glass-panel shadow-2xl",
+        theme === 'dark' ? "bg-gray-900/90 border-gray-800" : "bg-white/90 border-gray-100",
+        isSidebarOpen ? "translate-x-0" : "-translate-x-full"
       )}>
         <div className="flex items-center justify-between p-4 border-b border-gray-700/30">
           <h2 className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
@@ -75,7 +95,12 @@ export default function Layout() {
             return (
               <button
                 key={item.path}
-                onClick={() => navigate(item.path)}
+                onClick={() => {
+                  navigate(item.path);
+                  if (window.innerWidth < 1024) {
+                    setSidebarOpen(false);
+                  }
+                }}
                 className={cn(
                   "w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-300 group relative overflow-hidden",
                   isActive 
@@ -107,7 +132,7 @@ export default function Layout() {
       {/* Main Content */}
       <main className={cn(
         "flex-1 flex flex-col min-w-0 transition-all duration-300",
-        isSidebarOpen ? "lg:ml-5" : ""
+        isSidebarOpen ? "lg:pl-64" : "lg:pl-0"
       )}>
         {/* Header */}
         <header className={cn(
