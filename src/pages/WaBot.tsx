@@ -6,7 +6,15 @@ import { safeFetchJson } from '@/src/lib/utils';
 export default function WaBot() {
   const [status, setStatus] = useState('Disconnected');
   const [qr, setQr] = useState<string | null>(null);
-  const [serverlessMode, setServerlessMode] = useState(false);
+  const [serverlessMode, setServerlessMode] = useState(() => {
+    const cached = localStorage.getItem('osim_serverless_mode');
+    return cached === 'true';
+  });
+
+  const updateServerlessMode = (val: boolean) => {
+    setServerlessMode(val);
+    localStorage.setItem('osim_serverless_mode', String(val));
+  };
 
   const fetchStatus = async () => {
     try {
@@ -18,7 +26,7 @@ export default function WaBot() {
       const contentType = res.headers.get('content-type');
       if (!contentType || !contentType.includes('application/json')) {
         // We are on a static/serverless host like Vercel where backend and SQLite do not run
-        setServerlessMode(true);
+        updateServerlessMode(true);
         setStatus('Serverless Mode Active');
         setQr(null);
         return;
@@ -29,7 +37,7 @@ export default function WaBot() {
       setQr(data.qr);
     } catch (e) {
       // If endpoint is unreachable (like on Vercel or when backend is down/unresolvable), set to Serverless Mode
-      setServerlessMode(true);
+      updateServerlessMode(true);
       setStatus('Serverless Mode Active');
       setQr(null);
     }
@@ -45,11 +53,22 @@ export default function WaBot() {
     if (serverlessMode) {
       Swal.fire({
         icon: 'info',
-        title: 'Info Serverless',
-        text: 'Mode serverless menggunakan direct-redireksi browser. Tidak membutuhkan koneksi bot server!',
+        title: '⚠️ Info Hosting Serverless (Vercel)',
+        html: `
+          <div class="text-left space-y-3 font-medium text-xs sm:text-sm text-gray-300 leading-relaxed">
+            <p>Aplikasi ini dideploy di <b>Vercel</b> yang merupakan platform static hosting gratis.</p>
+            <p>Vercel <b>tidak mendukung</b> running background process persisten untuk menjalankan <b>Bot WhatsApp Otomatis</b>.</p>
+            <p><b>Solusi Untuk Anda:</b></p>
+            <ol class="list-decimal pl-4 space-y-2 text-xs">
+              <li><b>Gunakan Mode Serverless (Link Direct):</b> Anda tetap bisa mengirim pesan reminder piket secara gratis menggunakan link redirect browser (pilih tab hijau di atas).</li>
+              <li><b>Deploy ke Render / Railway:</b> Jika ingin bot server otomatis berjalan 24/7 di background tanpa buka browser, deploy ke Render/Railway gratis mengikuti panduan <b>TUTORIAL_DEPLOY.md</b> di file project.</li>
+            </ol>
+          </div>
+        `,
         background: '#111827',
         color: '#fff',
-        confirmButtonColor: '#3b82f6'
+        confirmButtonColor: '#3b82f6',
+        confirmButtonText: 'Saya Mengerti'
       });
       return;
     }
@@ -91,7 +110,23 @@ export default function WaBot() {
   };
 
   const handleStop = async () => {
-    if (serverlessMode) return;
+    if (serverlessMode) {
+      Swal.fire({
+        icon: 'info',
+        title: 'ℹ️ Info Mode Serverless',
+        html: `
+          <div class="text-left space-y-2 font-medium text-xs sm:text-sm text-gray-300 leading-relaxed">
+            <p>Anda sedang berada di <b>Mode Link Direct Browser</b>.</p>
+            <p>Pada mode ini, pengiriman manual langsung diarahkan oleh browser Anda ke WhatsApp Web/App, sehingga tidak ada bot background di server yang perlu dimatikan.</p>
+          </div>
+        `,
+        background: '#111827',
+        color: '#fff',
+        confirmButtonColor: '#3b82f6',
+        confirmButtonText: 'Tutup'
+      });
+      return;
+    }
 
     Swal.fire({
       title: 'Mematikan Bot...',
@@ -191,7 +226,7 @@ export default function WaBot() {
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <button
-            onClick={() => setServerlessMode(false)}
+            onClick={() => updateServerlessMode(false)}
             type="button"
             className={`p-4 rounded-2xl border text-left transition-all ${
               !serverlessMode
@@ -208,7 +243,7 @@ export default function WaBot() {
           </button>
 
           <button
-            onClick={() => setServerlessMode(true)}
+            onClick={() => updateServerlessMode(true)}
             type="button"
             className={`p-4 rounded-2xl border text-left transition-all ${
               serverlessMode
@@ -262,14 +297,14 @@ export default function WaBot() {
               <div className="flex gap-2 w-full">
                   <button 
                     onClick={handleStart} 
-                    disabled={serverlessMode || status !== 'Disconnected'} 
+                    disabled={!serverlessMode && status !== 'Disconnected'} 
                     className="flex-1 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-semibold py-2.5 rounded-xl flex items-center justify-center gap-2 text-xs sm:text-sm transition-all shadow-md active:scale-95"
                   >
                       <Play size={16} /> Mulai
                   </button>
                   <button 
                     onClick={handleStop} 
-                    disabled={serverlessMode || status === 'Disconnected'} 
+                    disabled={!serverlessMode && status === 'Disconnected'} 
                     className="flex-1 bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white font-semibold py-2.5 rounded-xl flex items-center justify-center gap-2 text-xs sm:text-sm transition-all shadow-md active:scale-95"
                   >
                       <Square size={16} /> Stop

@@ -265,28 +265,35 @@ export default function Piket() {
     }).then(async (result) => {
       if (result.isConfirmed) {
         const messageBody = `Halo ${item.nama}, hari ini jadwal piket Anda hari ${item.hari}, tanggal ${item.tanggal || '-'} jam ${item.jam}. Tugas Anda: ${item.tugas}. Mohon kehadirannya tepat waktu.`;
-        try {
-          const res = await fetch('/api/wa/send', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              phone: item.nomor_wa,
-              message: messageBody
-            })
-          });
-          if (res.ok) {
-            Swal.fire({
-              icon: 'success',
-              title: 'Terkirim',
-              text: 'Pesan berhasil dikirim via WhatsApp API Bot!',
-              confirmButtonColor: '#10b981',
-              background: '#111827',
-              color: '#fff'
+        
+        const isServerless = localStorage.getItem('osim_serverless_mode') === 'true';
+
+        if (!isServerless) {
+          try {
+            const res = await fetch('/api/wa/send', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                phone: item.nomor_wa,
+                message: messageBody
+              })
             });
-            return;
+            
+            const contentType = res.headers.get('content-type');
+            if (res.ok && contentType && contentType.includes('application/json')) {
+              Swal.fire({
+                icon: 'success',
+                title: 'Terkirim',
+                text: 'Pesan berhasil dikirim via WhatsApp API Bot!',
+                confirmButtonColor: '#10b981',
+                background: '#111827',
+                color: '#fff'
+              });
+              return;
+            }
+          } catch (e) {
+            console.log('Automated bot unreachable, using fallback URL redirect', e);
           }
-        } catch (e) {
-          console.log('Automated bot unreachable, using fallback URL redirect', e);
         }
 
         // Fallback: direct Click to Chat link
@@ -294,8 +301,8 @@ export default function Piket() {
         const waUrl = `https://api.whatsapp.com/send?phone=${cleanNumber}&text=${encodeURIComponent(messageBody)}`;
         window.open(waUrl, '_blank');
         Swal.fire({
-          title: 'Reminder Dialihkan',
-          text: 'Mengalihkan ke WhatsApp Web atau aplikasi Anda secara langsung.',
+          title: 'Reminder Dialihkan (Mode Browser)',
+          text: 'Mengalihkan ke WhatsApp Web atau aplikasi Anda secara langsung karena server offline atau dideploy di Vercel.',
           icon: 'info',
           background: '#111827',
           color: '#fff',
