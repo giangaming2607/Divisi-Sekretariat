@@ -1,0 +1,91 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User account for OSIM secretariat members",
+      "type": "object",
+      "properties": {
+        "id": { "type": "integer" },
+        "username": { "type": "string" },
+        "password": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin", "user"] }
+      },
+      "required": ["id", "username", "role"]
+    },
+    "Setting": {
+      "title": "Setting",
+      "description": "System settings or configurations",
+      "type": "object",
+      "properties": {
+        "key": { "type": "string" },
+        "value": { "type": "string" }
+      },
+      "required": ["key", "value"]
+    },
+    "InventarisItem": {
+      "title": "InventarisItem",
+      "description": "An item in the OSIM inventory",
+      "type": "object",
+      "properties": {
+        "id": { "type": "integer" },
+        "nama": { "type": "string" },
+        "kategori": { "type": "string" },
+        "kondisi": { "type": "string" },
+        "status": { "type": "string" }
+      },
+      "required": ["id", "nama", "kategori", "kondisi", "status"]
+    },
+    "PiketItem": {
+      "title": "PiketItem",
+      "description": "A scheduled task assignment for piket duty",
+      "type": "object",
+      "properties": {
+        "id": { "type": "integer" },
+        "nama": { "type": "string" },
+        "hari": { "type": "string" },
+        "tanggal": { "type": "string" },
+        "jam": { "type": "string" },
+        "tugas": { "type": "string" },
+        "nomor_wa": { "type": "string" }
+      },
+      "required": ["id", "nama", "hari", "tanggal", "jam", "tugas", "nomor_wa"]
+    },
+    "ProkerItem": {
+      "title": "ProkerItem",
+      "description": "An OSIM work program",
+      "type": "object",
+      "properties": {
+        "id": { "type": "integer" },
+        "nama": { "type": "string" },
+        "pj": { "type": "string" },
+        "tanggal_mulai": { "type": "string" },
+        "tanggal_selesai": { "type": "string" },
+        "deskripsi": { "type": "string" },
+        "status": { "type": "string" }
+      },
+      "required": ["id", "nama", "pj", "tanggal_mulai", "tanggal_selesai", "deskripsi", "status"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Stored user credentials and records"
+    },
+    "/settings/{settingId}": {
+      "schema": "Setting",
+      "description": "Stored system settings and configurations"
+    },
+    "/inventaris/{inventarisId}": {
+      "schema": "InventarisItem",
+      "description": "OSIM secretariat material possessions and inventory"
+    },
+    "/piket/{piketId}": {
+      "schema": "PiketItem",
+      "description": "Schedule entries for daily duty roster"
+    },
+    "/proker/{prokerId}": {
+      "schema": "ProkerItem",
+      "description": "Work programs roster, timeline, objectives, and status"
+    }
+  }
+}
