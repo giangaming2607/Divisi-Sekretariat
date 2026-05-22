@@ -14,12 +14,23 @@ export default function WaBot() {
       if (!res.ok) {
         throw new Error('Not found');
       }
+      
+      const contentType = res.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        // We are on a static/serverless host like Vercel where backend and SQLite do not run
+        setServerlessMode(true);
+        setStatus('Serverless Mode Active');
+        setQr(null);
+        return;
+      }
+
       const data = await safeFetchJson(res, { status: 'Disconnected', qr: null });
       setStatus(data.status);
       setQr(data.qr);
     } catch (e) {
-      // If endpoint is unreachable (like on a static fallback), log it but don't force-disable bot operation selectors.
-      setStatus('Disconnected');
+      // If endpoint is unreachable (like on Vercel or when backend is down/unresolvable), set to Serverless Mode
+      setServerlessMode(true);
+      setStatus('Serverless Mode Active');
       setQr(null);
     }
   };
@@ -216,15 +227,15 @@ export default function WaBot() {
       </div>
 
       {serverlessMode && (
-        <div className="bg-blue-600/10 border border-blue-500/20 text-blue-800 dark:text-blue-300 rounded-2xl p-5 flex items-start gap-4">
+        <div className="bg-blue-600/10 border border-blue-500/20 text-blue-800 dark:text-blue-300 rounded-2xl p-5 flex items-start gap-4 shadow-sm animate-fade-in">
           <AlertCircle size={24} className="text-blue-500 shrink-0 mt-0.5" />
           <div className="text-sm">
-            <h4 className="font-bold text-blue-900 dark:text-blue-200 mb-1">Informasi Fitur Link Direct Browser</h4>
-            <p className="leading-relaxed">
-              Karena Anda menghidupkan Mode Serverless / Manual, <strong>fitur pengiriman reminder Jadwal Piket akan dialihkan langsung ke WhatsApp Web / App Anda sendiri</strong>.
+            <h4 className="font-bold text-blue-900 dark:text-blue-200 mb-1">ℹ️ Deteksi Serverless Teraktifkan (Vercel / Static Host)</h4>
+            <p className="leading-relaxed opacity-90">
+              Sistem mendeteksi bahwa aplikasi ini berjalan di hosting statis (Vercel/Github Pages). Karena hosting statis tidak mendukung server Node.js di background untuk menghubungkan sesi WhatsApp secara mandiri, <strong>Mode Link Direct Browser otomatis diaktifkan untuk Anda.</strong>
             </p>
             <p className="mt-2 text-xs font-semibold text-blue-700 dark:text-blue-400">
-               ✓ Reminder tetap dapat dikirim secara gratis menggunakan WhatsApp tanpa memerlukan setup server bot yang rumit!
+               ✓ Anda tetap dapat mengirim pengingat jadwal piket secara praktis! Sistem akan mengarahkan pesan langsung ke WhatsApp Web / aplikasi di HP Anda.
             </p>
           </div>
         </div>
