@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/src/lib/store';
-import { safeFetchJson } from '@/src/lib/utils';
+import { clientGetSettings, clientLogin } from '../lib/firebaseClient';
 import { Bot, Lock, Code2, Loader2 } from 'lucide-react';
 import Swal from 'sweetalert2';
 
@@ -15,8 +15,7 @@ export default function Login() {
   const { setUser } = useAuthStore();
 
   React.useEffect(() => {
-    fetch('/api/settings')
-      .then(res => safeFetchJson<any>(res, {}))
+    clientGetSettings()
       .then(data => {
         if (data.login_logo) setLoginLogo(data.login_logo);
         if (data.nama_sekolah) setNamaSekolah(data.nama_sekolah);
@@ -29,39 +28,32 @@ export default function Login() {
     setLoading(true);
     
     try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
-      });
+      const loggedUser = await clientLogin(username, password);
       
-      const data = await safeFetchJson<any>(res, { error: 'Terjadi kesalahan sistem' });
-      
-      if (res.ok && data.user) {
-        setUser(data.user);
-        const Toast = Swal.mixin({
-            toast: true,
-            position: "top-end",
-            showConfirmButton: false,
-            timer: 3000,
-            timerProgressBar: true,
-            background: '#1f2937',
-            color: '#fff'
-        });
-        Toast.fire({ icon: "success", title: "Berhasil masuk" });
-        navigate('/');
-      } else {
-        Swal.fire({
-          icon: 'error',
-          title: 'Akses Ditolak',
-          text: data.error || 'Username atau password salah',
+      // Cache session in localStorage for local persistence across reloads/devices
+      localStorage.setItem('osim_user', JSON.stringify(loggedUser));
+      setUser(loggedUser);
+
+      const Toast = Swal.mixin({
+          toast: true,
+          position: "top-end",
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true,
           background: '#1f2937',
-          color: '#fff',
-          confirmButtonColor: '#3b82f6'
-        });
-      }
-    } catch (err) {
-      console.error(err);
+          color: '#fff'
+      });
+      Toast.fire({ icon: "success", title: "Berhasil masuk" });
+      navigate('/');
+    } catch (err: any) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Akses Ditolak',
+        text: err.message || 'Username atau password salah',
+        background: '#1f2937',
+        color: '#fff',
+        confirmButtonColor: '#3b82f6'
+      });
     } finally {
       setLoading(false);
     }

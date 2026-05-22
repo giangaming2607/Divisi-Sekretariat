@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Target, Plus, Trash2 } from 'lucide-react';
 import { useAuthStore } from '@/src/lib/store';
-import { safeFetchJson } from '@/src/lib/utils';
+import { clientGetProker, clientAddProker, clientDeleteProker } from '../lib/firebaseClient';
 
 interface ProkerData {
   id: number;
@@ -19,8 +19,7 @@ export default function Proker() {
 
   const fetchItems = async () => {
       try {
-          const res = await fetch('/api/proker');
-          const data = await safeFetchJson(res, []);
+          const data = await clientGetProker();
           setItems(data);
       } catch (e) {
           console.error(e);
@@ -31,19 +30,19 @@ export default function Proker() {
   useEffect(() => { fetchItems(); }, []);
 
   const handleAdd = async () => {
-       await fetch('/api/proker', {
-          method: 'POST',
-           headers: { 'Content-Type': 'application/json' },
-           body: JSON.stringify({
-               nama: 'LDKS OSIM 2024',
-               pj: 'Gian Aditya',
-               tanggal_mulai: '2024-07-10',
-               tanggal_selesai: '2024-07-12',
-               deskripsi: 'Latihan Dasar Kepemimpinan',
-               status: 'Berjalan'
-           })
-       });
-       fetchItems();
+       try {
+         await clientAddProker({
+             nama: 'LDKS OSIM 2024',
+             pj: 'Gian Aditya',
+             tanggal_mulai: '2024-07-10',
+             tanggal_selesai: '2024-07-12',
+             deskripsi: 'Latihan Dasar Kepemimpinan',
+             status: 'Berjalan'
+         });
+         fetchItems();
+       } catch (err) {
+         console.error(err);
+       }
   }
 
   const getStatusColor = (status: string) => {
@@ -89,7 +88,7 @@ export default function Proker() {
                      {user?.role === 'admin' && (
                          <div className="mt-4 flex gap-2">
                              <button onClick={async () => {
-                                 await fetch(`/api/proker/${item.id}`, { method: 'DELETE' });
+                                 await clientDeleteProker(item.id);
                                  fetchItems();
                              }} className="text-red-500 hover:text-red-400 text-sm font-medium flex items-center gap-1">
                                  <Trash2 size={16} /> Hapus

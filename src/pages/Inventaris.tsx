@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { PackageSearch, Plus, Edit, Trash2, Search } from 'lucide-react';
 import Swal from 'sweetalert2';
-import { safeFetchJson } from '@/src/lib/utils';
+import { clientGetInventaris, clientAddInventaris, clientDeleteInventaris } from '../lib/firebaseClient';
 
 interface Item {
   id: number;
@@ -18,8 +18,7 @@ export default function Inventaris() {
 
   const fetchItems = async () => {
     try {
-      const res = await fetch('/api/inventaris');
-      const data = await safeFetchJson(res, []);
+      const data = await clientGetInventaris();
       setItems(data);
     } catch (e) {
       console.error(e);
@@ -43,7 +42,7 @@ export default function Inventaris() {
       confirmButtonText: 'Ya, hapus!'
     }).then(async (result) => {
       if (result.isConfirmed) {
-        await fetch(`/api/inventaris/${id}`, { method: 'DELETE' });
+        await clientDeleteInventaris(id);
         Swal.fire('Terhapus!', 'Data berhasil dihapus.', 'success');
         fetchItems();
       }
@@ -80,11 +79,7 @@ export default function Inventaris() {
           }
       }).then(async (result) => {
           if (result.isConfirmed) {
-              await fetch('/api/inventaris', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify(result.value)
-              });
+              await clientAddInventaris(result.value as any);
               Swal.fire('Berhasil!', 'Data tersimpan.', 'success');
               fetchItems();
           }

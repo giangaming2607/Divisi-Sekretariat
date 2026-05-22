@@ -3,21 +3,82 @@ import { useAuthStore } from '@/src/lib/store';
 import { Users, Package, CalendarDays, Target, Activity } from 'lucide-react';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
+import { 
+  clientGetInventaris, 
+  clientGetProker, 
+  clientGetPiket, 
+  clientGetUsers,
+  InventarisItem,
+  ProkerItem,
+  PiketItem
+} from '../lib/firebaseClient';
+
+interface User {
+  id: number;
+  username: string;
+  role: string;
+}
 
 export default function Dashboard() {
   const { user } = useAuthStore();
   const [currentTime, setCurrentTime] = useState(new Date());
+  
+  // Real Firestore States
+  const [inventarisCount, setInventarisCount] = useState<number>(0);
+  const [prokerActiveCount, setProkerActiveCount] = useState<number>(0);
+  const [piketCount, setPiketCount] = useState<number>(0);
+  const [userCount, setUserCount] = useState<number>(0);
+  
+  const [piketToday, setPiketToday] = useState<PiketItem[]>([]);
+  const [prokersActive, setProkersActive] = useState<ProkerItem[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
 
+  useEffect(() => {
+    const loadDashboardData = async () => {
+      try {
+        const [inventaris, prokers, pikets, users] = await Promise.all([
+          clientGetInventaris(),
+          clientGetProker(),
+          clientGetPiket(),
+          clientGetUsers()
+        ]);
+
+        // 1. Calculate count totals
+        setInventarisCount(inventaris.length);
+        const activeProkers = prokers.filter(p => p.status === 'Berjalan');
+        setProkerActiveCount(activeProkers.length);
+        setPiketCount(pikets.length);
+        setUserCount(users.length);
+
+        // 2. Fetch pikets for today (e.g. "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu")
+        const currentDayName = format(new Date(), 'EEEE', { locale: id });
+        const filteredPiketToday = pikets.filter(
+          p => p.hari.toLowerCase() === currentDayName.toLowerCase()
+        );
+        setPiketToday(filteredPiketToday);
+
+        // 3. active proker list
+        setProkersActive(activeProkers);
+      } catch (err) {
+        console.error('Error fetching dashboard states:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadDashboardData();
+  }, []);
+
   const stats = [
-    { label: 'Total Inventaris', value: '45', icon: Package, color: 'text-blue-500', bg: 'bg-blue-500/10' },
-    { label: 'Proker Berjalan', value: '3', icon: Target, color: 'text-purple-500', bg: 'bg-purple-500/10' },
-    { label: 'Petugas Piket', value: '12', icon: CalendarDays, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
-    { label: 'User Aktif', value: '5', icon: Users, color: 'text-amber-500', bg: 'bg-amber-500/10' },
+    { label: 'Total Inventaris', value: String(inventarisCount), icon: Package, color: 'text-blue-500', bg: 'bg-blue-500/10' },
+    { label: 'Proker Berjalan', value: String(prokerActiveCount), icon: Target, color: 'text-purple-500', bg: 'bg-purple-500/10' },
+    { label: 'Petugas Piket', value: String(piketCount), icon: CalendarDays, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
+    { label: 'User Aktif', value: String(userCount), icon: Users, color: 'text-amber-500', bg: 'bg-amber-500/10' },
   ];
 
   return (
@@ -52,7 +113,7 @@ export default function Dashboard() {
                 </div>
               </div>
               <div>
-                <h3 className="text-3xl font-bold dark:text-white text-gray-900">{stat.value}</h3>
+                <h3 className="text-3xl font-bold dark:text-white text-gray-900">{loading ? '...' : stat.value}</h3>
                 <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">{stat.label}</p>
               </div>
             </div>
@@ -62,21 +123,64 @@ export default function Dashboard() {
 
       {/* Grid Layout for Charts/Tables */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+         {/* Today's Piket Card */}
          <div className="bg-white/5 dark:bg-gray-900/50 backdrop-blur-xl border border-gray-200 dark:border-gray-800 rounded-2xl p-6">
             <h3 className="text-lg font-semibold mb-4 dark:text-white flex items-center gap-2">
-              <CalendarDays className="text-blue-500" size={20} /> Jadwal Piket Hari Ini
+              <CalendarDays className="text-emerald-500" size={20} /> Jadwal Piket Hari Ini ({format(new Date(), 'EEEE', { locale: id })})
             </h3>
-            <div className="flex flex-col items-center justify-center h-48 text-gray-500">
-               <p>Belum ada jadwal piket hari ini.</p>
-            </div>
+            {loading ? (
+              <div className="flex justify-center items-center h-48 text-gray-500">
+                <div className="w-5 h-5 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+              </div>
+            ) : piketToday.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-48 text-gray-500">
+                 <p>Belum ada jadwal piket untuk hari {format(new Date(), 'EEEE', { locale: id })}.</p>
+              </div>
+            ) : (
+              <div className="space-y-3 overflow-y-auto max-h-48 pr-2">
+                {piketToday.map((item) => (
+                  <div key={item.id} className="flex justify-between items-center bg-gray-100 dark:bg-gray-850 p-4 rounded-xl border border-gray-200 dark:border-gray-850">
+                    <div>
+                      <h4 className="font-bold text-sm dark:text-white">{item.nama}</h4>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Jam: {item.jam} — Tugas: {item.tugas}</p>
+                    </div>
+                    <span className="text-xs px-2.5 py-1 bg-emerald-500/10 text-emerald-400 font-medium rounded-full">
+                      Piket Aktif
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
          </div>
+
+         {/* Active Prokers Card */}
          <div className="bg-white/5 dark:bg-gray-900/50 backdrop-blur-xl border border-gray-200 dark:border-gray-800 rounded-2xl p-6">
             <h3 className="text-lg font-semibold mb-4 dark:text-white flex items-center gap-2">
-              <Target className="text-purple-500" size={20} /> Proker Aktif
+              <Target className="text-purple-500" size={20} /> Proker Aktif (Berjalan)
             </h3>
-            <div className="flex flex-col items-center justify-center h-48 text-gray-500">
-               <p>Tidak ada program kerja yang sedang berjalan.</p>
-            </div>
+            {loading ? (
+              <div className="flex justify-center items-center h-48 text-gray-500">
+                <div className="w-5 h-5 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+              </div>
+            ) : prokersActive.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-48 text-gray-500">
+                 <p>Tidak ada program kerja yang sedang berjalan saat ini.</p>
+              </div>
+            ) : (
+              <div className="space-y-3 overflow-y-auto max-h-48 pr-2">
+                {prokersActive.map((item) => (
+                  <div key={item.id} className="flex justify-between items-center bg-gray-100 dark:bg-gray-850 p-4 rounded-xl border border-gray-200 dark:border-gray-850">
+                    <div>
+                      <h4 className="font-bold text-sm dark:text-white">{item.nama}</h4>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Penanggung Jawab: {item.pj}</p>
+                    </div>
+                    <span className="text-xs px-2.5 py-1 bg-purple-500/10 text-purple-400 font-medium rounded-full">
+                      Berjalan
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
          </div>
       </div>
 

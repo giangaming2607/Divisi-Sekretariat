@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Settings as SettingsIcon, Save } from 'lucide-react';
 import Swal from 'sweetalert2';
-import { safeFetchJson } from '@/src/lib/utils';
+import { clientGetSettings, clientSaveSetting } from '../lib/firebaseClient';
 
 export default function Settings() {
   const [settings, setSettings] = useState({
@@ -12,14 +12,14 @@ export default function Settings() {
   });
 
   useEffect(() => {
-     fetch('/api/settings').then(res => safeFetchJson<any>(res, {})).then(data => {
+     clientGetSettings().then(data => {
          setSettings({
              nama_sekolah: data.nama_sekolah || '',
              periode: data.periode || '',
              wa_admin: data.wa_admin || '',
              login_logo: data.login_logo || ''
          });
-     })
+     }).catch(e => console.error(e));
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -29,18 +29,23 @@ export default function Settings() {
   const handleSave = async (e: React.FormEvent) => {
       e.preventDefault();
       
-      for (const [key, value] of Object.entries(settings)) {
-          await fetch('/api/settings', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ key, value })
+      try {
+          for (const [key, value] of Object.entries(settings)) {
+              await clientSaveSetting(key, value);
+          }
+          
+          Swal.fire({
+              toast: true, position: 'top-end', showConfirmButton: false, timer: 3000,
+              icon: 'success', title: 'Pengaturan disimpan', background: '#1f2937', color: '#fff'
+          });
+      } catch (err: any) {
+          Swal.fire({
+              icon: 'error',
+              title: 'Gagal Menyimpan',
+              text: err.message || 'Terjadi kesalahan sistem',
+              background: '#1f2937', color: '#fff'
           });
       }
-      
-      Swal.fire({
-          toast: true, position: 'top-end', showConfirmButton: false, timer: 3000,
-          icon: 'success', title: 'Pengaturan disimpan', background: '#1f2937', color: '#fff'
-      })
   }
 
   return (

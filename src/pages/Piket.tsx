@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { CalendarDays, Plus, Trash2, Bell } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { useAuthStore } from '@/src/lib/store';
-import { safeFetchJson } from '@/src/lib/utils';
+import { clientGetPiket, clientAddPiket, clientDeletePiket } from '../lib/firebaseClient';
 
 interface PiketData {
   id: number;
@@ -21,8 +21,7 @@ export default function Piket() {
 
   const fetchItems = async () => {
     try {
-      const res = await fetch('/api/piket');
-      const data = await safeFetchJson(res, []);
+      const data = await clientGetPiket();
       setItems(data);
     } catch (e) {
       console.error(e);
@@ -36,22 +35,18 @@ export default function Piket() {
   }, []);
 
   const handleAdd = () => {
-       fetch('/api/piket', {
-          method: 'POST',
-           headers: { 'Content-Type': 'application/json' },
-           body: JSON.stringify({
-               nama: 'Gian Aditya',
-               hari: 'Senin',
-               tanggal: '2023-10-31',
-               jam: '07:00',
-               tugas: 'Menyapu Ruangan',
-               nomor_wa: '08123456789'
-           })
+       clientAddPiket({
+           nama: 'Gian Aditya',
+           hari: 'Senin',
+           tanggal: '2023-10-31',
+           jam: '07:00',
+           tugas: 'Menyapu Ruangan',
+           nomor_wa: '08123456789'
        }).then(() => fetchItems());
   }
   
   const handleDelete = async (id: number) => {
-       await fetch(`/api/piket/${id}`, { method: 'DELETE' });
+       await clientDeletePiket(id);
        fetchItems();
   }
 
@@ -64,20 +59,34 @@ export default function Piket() {
           confirmButtonText: 'Kirim Pesan'
       }).then(async (result) => {
           if (result.isConfirmed) {
-              const res = await fetch('/api/wa/send', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                      phone: item.nomor_wa,
-                      message: `Halo ${item.nama}, hari ini jadwal piket Anda hari ${item.hari}, tanggal ${item.tanggal} jam ${item.jam}. Tugas Anda: ${item.tugas}.`
-                  })
-              });
-              const data = await safeFetchJson(res, { error: 'Gagal menghubungi WhatsApp bot' });
-              if (res.ok) {
-                  Swal.fire('Terkirim', 'Pesan berhasil dikirim via WhatsApp bot!', 'success');
-              } else {
-                  Swal.fire('Gagal', data.error || 'Terjadi kesalahan', 'error');
+              const messageBody = `Halo ${item.nama}, hari ini jadwal piket Anda hari ${item.hari}, tanggal ${item.tanggal} jam ${item.jam}. Tugas Anda: ${item.tugas}.`;
+              try {
+                  const res = await fetch('/api/wa/send', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                          phone: item.nomor_wa,
+                          message: messageBody
+                      })
+                  });
+                  if (res.ok) {
+                      Swal.fire('Terkirim', 'Pesan berhasil dikirim via WhatsApp bot!', 'success');
+                      return;
+                  }
+              } catch (e) {
+                  console.log('Automated bot unreachable, using fallback URL redirect', e);
               }
+
+              // Client fallback: wa.me redirect
+              const cleanNumber = item.nomor_wa.replace(/^0+/, '62').replace(/\D/g, '');
+              const waUrl = `https://api.whatsapp.com/send?phone=${cleanNumber}&text=${encodeURIComponent(messageBody)}`;
+              window.open(waUrl, '_blank');
+              Swal.fire({
+                title: 'Reminder Dialihkan',
+                text: 'WhatsApp bot tidak aktif. Mengalihkan ke WhatsApp Web/App Anda secara langsung.',
+                icon: 'info',
+                confirmButtonColor: '#3b82f6'
+              });
           }
       });
   }

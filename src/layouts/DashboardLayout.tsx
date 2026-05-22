@@ -40,7 +40,7 @@ export default function Layout() {
       confirmButtonText: 'Ya, logout!'
     }).then(async (result) => {
       if (result.isConfirmed) {
-        await fetch('/api/auth/logout', { method: 'POST' });
+        localStorage.removeItem('osim_user');
         setUser(null);
         navigate('/login');
       }

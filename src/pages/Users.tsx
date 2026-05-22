@@ -1,7 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Users as UsersIcon, Plus, Edit2, Trash2, Key, Shield, UserX, Search } from 'lucide-react';
+import { Users as UsersIcon, Plus, Edit2, Trash2, Shield, UserX, Search } from 'lucide-react';
 import Swal from 'sweetalert2';
-import { safeFetchJson } from '@/src/lib/utils';
+import { 
+  clientGetUsers, 
+  clientAddUser, 
+  clientUpdateUser, 
+  clientDeleteUser 
+} from '../lib/firebaseClient';
 
 interface User {
   id: number;
@@ -16,8 +21,7 @@ export default function Users() {
 
   const fetchUsers = async () => {
     try {
-      const res = await fetch('/api/users');
-      const data = await safeFetchJson(res, []);
+      const data = await clientGetUsers();
       setUsers(data);
     } catch (e) {
       console.error(e);
@@ -73,34 +77,25 @@ export default function Users() {
     }).then(async (result) => {
       if (result.isConfirmed && result.value) {
         try {
-          const res = await fetch('/api/users', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(result.value),
+          await clientAddUser(result.value);
+          Swal.fire({
+            icon: 'success',
+            title: 'Berhasil',
+            text: 'Pengguna baru berhasil ditambahkan!',
+            background: '#111827',
+            color: '#fff',
+            confirmButtonColor: '#3b82f6'
           });
-          const data = await safeFetchJson(res, { error: 'Gagal menambah pengguna' });
-          if (res.ok) {
-            Swal.fire({
-              icon: 'success',
-              title: 'Berhasil',
-              text: 'Pengguna baru berhasil ditambahkan!',
-              background: '#111827',
-              color: '#fff',
-              confirmButtonColor: '#3b82f6'
-            });
-            fetchUsers();
-          } else {
-            Swal.fire({
-              icon: 'error',
-              title: 'Gagal',
-              text: data.error || 'Terjadi kesalahan sistem',
-              background: '#111827',
-              color: '#fff',
-              confirmButtonColor: '#ef4444'
-            });
-          }
-        } catch (err) {
-          console.error(err);
+          fetchUsers();
+        } catch (err: any) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Gagal',
+            text: err.message || 'Terjadi kesalahan sistem',
+            background: '#111827',
+            color: '#fff',
+            confirmButtonColor: '#ef4444'
+          });
         }
       }
     });
@@ -149,34 +144,25 @@ export default function Users() {
     }).then(async (result) => {
       if (result.isConfirmed && result.value) {
         try {
-          const res = await fetch(`/api/users/${user.id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(result.value),
+          await clientUpdateUser(user.id, result.value);
+          Swal.fire({
+            icon: 'success',
+            title: 'Diperbarui',
+            text: 'Data pengguna berhasil diubah!',
+            background: '#111827',
+            color: '#fff',
+            confirmButtonColor: '#3b82f6'
           });
-          const data = await safeFetchJson(res, { error: 'Gagal merubah data pengguna' });
-          if (res.ok) {
-            Swal.fire({
-              icon: 'success',
-              title: 'Diperbarui',
-              text: 'Data pengguna berhasil diubah!',
-              background: '#111827',
-              color: '#fff',
-              confirmButtonColor: '#3b82f6'
-            });
-            fetchUsers();
-          } else {
-            Swal.fire({
-              icon: 'error',
-              title: 'Gagal',
-              text: data.error || 'Terjadi kesalahan sistem',
-              background: '#111827',
-              color: '#fff',
-              confirmButtonColor: '#ef4444'
-            });
-          }
-        } catch (err) {
-          console.error(err);
+          fetchUsers();
+        } catch (err: any) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Gagal',
+            text: err.message || 'Terjadi kesalahan sistem',
+            background: '#111827',
+            color: '#fff',
+            confirmButtonColor: '#ef4444'
+          });
         }
       }
     });
@@ -209,30 +195,25 @@ export default function Users() {
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          const res = await fetch(`/api/users/${user.id}`, { method: 'DELETE' });
-          const data = await safeFetchJson(res, { error: 'Gagal menghapus pengguna' });
-          if (res.ok) {
-            Swal.fire({
-              icon: 'success',
-              title: 'Terhapus',
-              text: 'Pengguna berhasil dihapus',
-              background: '#111827',
-              color: '#fff',
-              confirmButtonColor: '#3b82f6'
-            });
-            fetchUsers();
-          } else {
-            Swal.fire({
-              icon: 'error',
-              title: 'Gagal',
-              text: data.error || 'Gagal menghapus pengguna',
-              background: '#111827',
-              color: '#fff',
-              confirmButtonColor: '#ef4444'
-            });
-          }
-        } catch (err) {
-          console.error(err);
+          await clientDeleteUser(user.id);
+          Swal.fire({
+            icon: 'success',
+            title: 'Terhapus',
+            text: 'Pengguna berhasil dihapus',
+            background: '#111827',
+            color: '#fff',
+            confirmButtonColor: '#3b82f6'
+          });
+          fetchUsers();
+        } catch (err: any) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Gagal',
+            text: err.message || 'Gagal menghapus pengguna',
+            background: '#111827',
+            color: '#fff',
+            confirmButtonColor: '#ef4444'
+          });
         }
       }
     });

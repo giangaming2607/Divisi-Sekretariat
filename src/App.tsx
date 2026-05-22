@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStore } from '@/src/lib/store';
-import { safeFetchJson } from '@/src/lib/utils';
+import { seedInitialAdmin } from './lib/firebaseClient';
 import DashboardLayout from './layouts/DashboardLayout';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
@@ -26,16 +26,28 @@ export default function App() {
   const [loading, setLoading] = React.useState(true);
 
   useEffect(() => {
-    fetch('/api/auth/me')
-      .then(res => safeFetchJson(res, { user: null }))
-      .then(data => {
-        if (data && data.user) setUser(data.user);
+    const initializeApp = async () => {
+      try {
+        // Run admin seeding asynchronously so Firestore always has at least 'admin'
+        await seedInitialAdmin();
+
+        // Retrieve local storage saved user session
+        const savedUser = localStorage.getItem('osim_user');
+        if (savedUser) {
+          try {
+            setUser(JSON.parse(savedUser));
+          } catch (e) {
+            localStorage.removeItem('osim_user');
+          }
+        }
+      } catch (err) {
+        console.error('App init error:', err);
+      } finally {
         setLoading(false);
-      })
-      .catch((e) => {
-        console.error('Error fetching current user:', e);
-        setLoading(false);
-      });
+      }
+    };
+
+    initializeApp();
   }, [setUser]);
 
   if (loading) return <div className="min-h-screen bg-gray-950 flex items-center justify-center p-4">
