@@ -28,6 +28,7 @@ interface User {
   username: string;
   role: string;
   password?: string;
+  nomor_wa?: string;
 }
 
 // Ensures an administrative user exists in Firestore
@@ -114,7 +115,8 @@ export async function clientGetUsers(): Promise<User[]> {
     return {
       id: Number(data.id),
       username: data.username,
-      role: data.role
+      role: data.role,
+      nomor_wa: data.nomor_wa || ''
     };
   });
 }
@@ -130,7 +132,8 @@ export async function clientAddUser(user: Partial<User>): Promise<void> {
     id,
     username: user.username,
     password: hashedPassword,
-    role: user.role || 'user'
+    role: user.role || 'user',
+    nomor_wa: user.nomor_wa || ''
   };
   await setDoc(doc(db, 'users', String(id)), newUser);
 }
@@ -145,7 +148,8 @@ export async function clientUpdateUser(id: number, data: Partial<User>): Promise
   const updateData: any = {
     ...existing,
     username: data.username || existing.username,
-    role: data.role || existing.role
+    role: data.role || existing.role,
+    nomor_wa: data.nomor_wa !== undefined ? data.nomor_wa : (existing.nomor_wa || '')
   };
   if (data.password) {
     const salt = bcrypt.genSaltSync(10);
@@ -161,6 +165,68 @@ export async function clientDeleteUser(id: number): Promise<void> {
     throw new Error('Tidak bisa menghapus akun admin utama');
   }
   await deleteDoc(docRef);
+}
+
+/**
+ * ----------------- KATEGORI OPERATIONS -----------------
+ */
+
+export interface CategoryItem {
+  id: number;
+  nama: string;
+}
+
+export async function seedInitialCategories() {
+  try {
+    const snap = await getDocs(collection(db, 'categories'));
+    if (snap.empty) {
+      console.log('[Firebase Client] Seeding initial categories...');
+      const defaultCategories = ['Elektronik', 'ATK', 'Furnitur'];
+      for (const [index, cat] of defaultCategories.entries()) {
+        const id = Date.now() + index;
+        await setDoc(doc(db, 'categories', String(id)), { id, nama: cat });
+      }
+      console.log('[Firebase Client] Categories seeded successfully!');
+    }
+  } catch (err) {
+    console.error('[Firebase Client] Error seeding categories:', err);
+  }
+}
+
+export async function clientGetCategories(): Promise<CategoryItem[]> {
+  const snap = await getDocs(collection(db, 'categories'));
+  return snap.docs.map(d => {
+    const data = d.data();
+    return {
+      id: Number(data.id),
+      nama: data.nama || ''
+    };
+  }).sort((a, b) => b.id - a.id);
+}
+
+export async function clientAddCategory(item: Omit<CategoryItem, 'id'>): Promise<void> {
+  const id = Date.now();
+  await setDoc(doc(db, 'categories', String(id)), {
+    id,
+    ...item
+  });
+}
+
+export async function clientDeleteCategory(id: number): Promise<void> {
+  await deleteDoc(doc(db, 'categories', String(id)));
+}
+
+export async function clientUpdateCategory(id: number, item: Partial<Omit<CategoryItem, 'id'>>): Promise<void> {
+  const docRef = doc(db, 'categories', String(id));
+  const snap = await getDoc(docRef);
+  if (!snap.exists()) {
+    throw new Error('Kategori tidak ditemukan');
+  }
+  const existing = snap.data();
+  await setDoc(docRef, {
+    ...existing,
+    ...item
+  });
 }
 
 /**

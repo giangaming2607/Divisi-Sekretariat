@@ -12,6 +12,7 @@ interface User {
   id: number;
   username: string;
   role: string;
+  nomor_wa?: string;
 }
 
 export default function Users() {
@@ -45,7 +46,16 @@ export default function Users() {
           </div>
           <div>
             <label class="block text-xs font-semibold text-gray-400 mb-1">Password</label>
-            <input id="swal-password" type="password" class="swal2-input !m-0 !w-full bg-gray-900 border border-gray-700 text-white rounded-xl" placeholder="Masukkan password">
+            <div class="relative">
+              <input id="swal-password" type="password" class="swal2-input !m-0 !w-full bg-gray-900 border border-gray-700 text-white rounded-xl pr-16" placeholder="Masukkan password">
+              <button type="button" id="toggle-swal-password" class="absolute inset-y-0 right-3 flex items-center text-xs font-bold text-blue-400 hover:text-blue-300 transition-colors focus:outline-none">
+                Lihat
+              </button>
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-400 mb-1">Nomor WhatsApp (Aktif Kirim Bot)</label>
+            <input id="swal-nomor-wa" class="swal2-input !m-0 !w-full bg-gray-900 border border-gray-700 text-white rounded-xl" placeholder="Contoh: 08123456789">
           </div>
           <div>
             <label class="block text-xs font-semibold text-gray-400 mb-1">Hak Akses / Role</label>
@@ -63,16 +73,32 @@ export default function Users() {
       confirmButtonText: 'Simpan',
       showCancelButton: true,
       cancelButtonText: 'Batal',
+      didOpen: () => {
+        const toggleBtn = document.getElementById('toggle-swal-password');
+        const passwordInput = document.getElementById('swal-password') as HTMLInputElement;
+        if (toggleBtn && passwordInput) {
+          toggleBtn.addEventListener('click', () => {
+            if (passwordInput.type === 'password') {
+              passwordInput.type = 'text';
+              toggleBtn.textContent = 'Sembunyi';
+            } else {
+              passwordInput.type = 'password';
+              toggleBtn.textContent = 'Lihat';
+            }
+          });
+        }
+      },
       preConfirm: () => {
         const username = (document.getElementById('swal-username') as HTMLInputElement).value.trim();
         const password = (document.getElementById('swal-password') as HTMLInputElement).value;
+        const nomor_wa = (document.getElementById('swal-nomor-wa') as HTMLInputElement).value.trim();
         const role = (document.getElementById('swal-role') as HTMLSelectElement).value;
 
         if (!username || !password) {
           Swal.showValidationMessage('Username dan Password wajib diisi');
           return false;
         }
-        return { username, password, role };
+        return { username, password, role, nomor_wa };
       }
     }).then(async (result) => {
       if (result.isConfirmed && result.value) {
@@ -112,7 +138,16 @@ export default function Users() {
           </div>
           <div>
             <label class="block text-xs font-semibold text-gray-400 mb-1">Password Baru (Kosongkan jika tidak diganti)</label>
-            <input id="swal-password" type="password" class="swal2-input !m-0 !w-full bg-gray-900 border border-gray-700 text-white rounded-xl" placeholder="Ganti password (opsional)">
+            <div class="relative">
+              <input id="swal-password" type="password" class="swal2-input !m-0 !w-full bg-gray-900 border border-gray-700 text-white rounded-xl pr-16" placeholder="Ganti password (opsional)">
+              <button type="button" id="toggle-swal-password" class="absolute inset-y-0 right-3 flex items-center text-xs font-bold text-blue-400 hover:text-blue-300 transition-colors focus:outline-none">
+                Lihat
+              </button>
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-400 mb-1">Nomor WhatsApp (Aktif Kirim Bot)</label>
+            <input id="swal-nomor-wa" value="${user.nomor_wa || ''}" class="swal2-input !m-0 !w-full bg-gray-900 border border-gray-700 text-white rounded-xl" placeholder="Contoh: 08123456789">
           </div>
           <div>
             <label class="block text-xs font-semibold text-gray-400 mb-1">Hak Akses / Role</label>
@@ -130,16 +165,32 @@ export default function Users() {
       confirmButtonText: 'Update',
       showCancelButton: true,
       cancelButtonText: 'Batal',
+      didOpen: () => {
+        const toggleBtn = document.getElementById('toggle-swal-password');
+        const passwordInput = document.getElementById('swal-password') as HTMLInputElement;
+        if (toggleBtn && passwordInput) {
+          toggleBtn.addEventListener('click', () => {
+            if (passwordInput.type === 'password') {
+              passwordInput.type = 'text';
+              toggleBtn.textContent = 'Sembunyi';
+            } else {
+              passwordInput.type = 'password';
+              toggleBtn.textContent = 'Lihat';
+            }
+          });
+        }
+      },
       preConfirm: () => {
         const username = (document.getElementById('swal-username') as HTMLInputElement).value.trim();
         const password = (document.getElementById('swal-password') as HTMLInputElement).value;
+        const nomor_wa = (document.getElementById('swal-nomor-wa') as HTMLInputElement).value.trim();
         const role = (document.getElementById('swal-role') as HTMLSelectElement).value;
 
         if (!username) {
           Swal.showValidationMessage('Username tidak boleh kosong');
           return false;
         }
-        return { username, password: password || undefined, role };
+        return { username, password: password || undefined, role, nomor_wa };
       }
     }).then(async (result) => {
       if (result.isConfirmed && result.value) {
@@ -267,7 +318,7 @@ export default function Users() {
                     <tr>
                         <th className="px-6 py-4">USERNAME</th>
                         <th className="px-6 py-4">ROLE HAK AKSES</th>
-                        <th className="px-6 py-4">SISTEM STATUS</th>
+                        <th className="px-6 py-4">NOMOR WHATSAPP</th>
                         <th className="px-6 py-4 text-center">AKSI MANAJEMEN</th>
                     </tr>
                 </thead>
@@ -306,10 +357,8 @@ export default function Users() {
                                     {userItem.role === 'admin' ? 'Admin / Pengurus' : 'Anggota Sekretariat'}
                                 </span>
                             </td>
-                            <td className="px-6 py-4">
-                                <span className="px-2 py-1 bg-emerald-500/10 text-emerald-400 text-xs font-mono rounded border border-emerald-500/20">
-                                    ● Aktif Sesi
-                                </span>
+                            <td className="px-6 py-4 dark:text-gray-300 font-mono text-sm">
+                                {userItem.nomor_wa || <span className="text-gray-500 text-xs italic">Belum diisi</span>}
                             </td>
                             <td className="px-6 py-4 text-center">
                               <div className="flex justify-center items-center gap-1">

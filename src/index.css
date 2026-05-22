@@ -21,3 +21,10 @@ h1, h2, h3, h4, h5, h6 {
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.05);
 }
+
+/* Fix browser native dropdown list font color in dark mode */
+select option {
+  color: #000000 !important;
+  background-color: #ffffff !important;
+}
+

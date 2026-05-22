@@ -22,6 +22,11 @@ service cloud.firestore {
       allow read, write: if true;
     }
 
+    // Match /categories collection
+    match /categories/{categoryId} {
+      allow read, write: if true;
+    }
+
     // Match /piket collection
     match /piket/{piketId} {
       allow read, write: if true;

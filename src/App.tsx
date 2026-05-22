@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStore } from '@/src/lib/store';
-import { seedInitialAdmin } from './lib/firebaseClient';
+import { seedInitialAdmin, seedInitialCategories } from './lib/firebaseClient';
 import DashboardLayout from './layouts/DashboardLayout';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
@@ -11,6 +11,7 @@ import Proker from './pages/Proker';
 import WaBot from './pages/WaBot';
 import Settings from './pages/Settings';
 import Users from './pages/Users';
+import Categories from './pages/Categories';
 
 const ProtectedRoute = ({ children, adminOnly = false }: { children: React.ReactNode, adminOnly?: boolean }) => {
   const { isAuthenticated, user } = useAuthStore();
@@ -30,6 +31,7 @@ export default function App() {
       try {
         // Run admin seeding asynchronously so Firestore always has at least 'admin'
         await seedInitialAdmin();
+        await seedInitialCategories();
 
         // Retrieve local storage saved user session
         const savedUser = localStorage.getItem('osim_user');
@@ -65,6 +67,7 @@ export default function App() {
           <Route path="piket" element={<Piket />} />
           <Route path="proker" element={<Proker />} />
           <Route path="users" element={<ProtectedRoute adminOnly><Users /></ProtectedRoute>} />
+          <Route path="categories" element={<ProtectedRoute adminOnly><Categories /></ProtectedRoute>} />
           <Route path="wa-bot" element={<ProtectedRoute adminOnly><WaBot /></ProtectedRoute>} />
           <Route path="settings" element={<ProtectedRoute adminOnly><Settings /></ProtectedRoute>} />
         </Route>

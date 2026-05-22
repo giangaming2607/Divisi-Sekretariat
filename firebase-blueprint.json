@@ -8,7 +8,8 @@
         "id": { "type": "integer" },
         "username": { "type": "string" },
         "password": { "type": "string" },
-        "role": { "type": "string", "enum": ["admin", "user"] }
+        "role": { "type": "string", "enum": ["admin", "user"] },
+        "nomor_wa": { "type": "string" }
       },
       "required": ["id", "username", "role"]
     },

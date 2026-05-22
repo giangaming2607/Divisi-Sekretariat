@@ -3,6 +3,7 @@ import { useAuthStore } from '@/src/lib/store';
 import { Users, Package, CalendarDays, Target, Activity } from 'lucide-react';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
+import Swal from 'sweetalert2';
 import { 
   clientGetInventaris, 
   clientGetProker, 
@@ -80,6 +81,44 @@ export default function Dashboard() {
     { label: 'Petugas Piket', value: String(piketCount), icon: CalendarDays, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
     { label: 'User Aktif', value: String(userCount), icon: Users, color: 'text-amber-500', bg: 'bg-amber-500/10' },
   ];
+
+  const handleShowProkerDetail = (item: ProkerItem) => {
+    Swal.fire({
+      title: item.nama,
+      html: `
+        <div class="text-left space-y-4">
+          <div class="p-4 bg-gray-950 border border-gray-800 rounded-2xl">
+            <span class="block text-[11px] font-bold text-purple-400 uppercase tracking-wider mb-1">Penjelasan / Deskripsi</span>
+            <p class="text-sm text-gray-200 leading-relaxed whitespace-pre-wrap">${item.deskripsi || 'Tidak ada deskripsi yang tersedia untuk program kerja ini.'}</p>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div class="p-3 bg-gray-950 border border-gray-800 rounded-2xl">
+              <span class="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Tanggal Mulai</span>
+              <span class="text-xs text-white font-mono flex items-center gap-1">📅 ${item.tanggal_mulai}</span>
+            </div>
+            <div class="p-3 bg-gray-950 border border-gray-800 rounded-2xl">
+              <span class="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Tanggal Selesai</span>
+              <span class="text-xs text-white font-mono flex items-center gap-1">📅 ${item.tanggal_selesai}</span>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div class="p-3 bg-gray-950 border border-gray-800 rounded-2xl">
+              <span class="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Penanggung Jawab (PJ)</span>
+              <span class="text-xs text-white font-semibold flex items-center gap-1">👤 ${item.pj}</span>
+            </div>
+            <div class="p-3 bg-gray-950 border border-gray-800 rounded-2xl">
+              <span class="block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">Status Proker</span>
+              <span class="text-xs font-bold text-blue-400">⏳ ${item.status || 'Berjalan'}</span>
+            </div>
+          </div>
+        </div>
+      `,
+      background: '#111827',
+      color: '#fff',
+      confirmButtonColor: '#9333ea',
+      confirmButtonText: 'Tutup Detail',
+    });
+  };
 
   return (
     <div className="space-y-6">
@@ -169,7 +208,11 @@ export default function Dashboard() {
             ) : (
               <div className="space-y-3 overflow-y-auto max-h-48 pr-2">
                 {prokersActive.map((item) => (
-                  <div key={item.id} className="flex justify-between items-center bg-gray-100 dark:bg-gray-850 p-4 rounded-xl border border-gray-200 dark:border-gray-850">
+                  <div 
+                    key={item.id} 
+                    onClick={() => handleShowProkerDetail(item)}
+                    className="flex justify-between items-center bg-gray-100 dark:bg-gray-850 p-4 rounded-xl border border-gray-200 dark:border-gray-850 hover:border-purple-500/40 cursor-pointer transition-all duration-200 hover:scale-[1.01]"
+                  >
                     <div>
                       <h4 className="font-bold text-sm dark:text-white">{item.nama}</h4>
                       <p className="text-xs text-gray-500 dark:text-gray-400">Penanggung Jawab: {item.pj}</p>

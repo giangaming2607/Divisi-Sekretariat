@@ -6,7 +6,9 @@ import {
   clientGetInventaris, 
   clientAddInventaris, 
   clientDeleteInventaris, 
-  clientUpdateInventaris 
+  clientUpdateInventaris,
+  clientGetCategories,
+  CategoryItem
 } from '../lib/firebaseClient';
 
 interface Item {
@@ -19,23 +21,29 @@ interface Item {
 
 export default function Inventaris() {
   const [items, setItems] = useState<Item[]>([]);
+  const [categories, setCategories] = useState<CategoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const { user } = useAuthStore();
 
-  const fetchItems = async () => {
+  const fetchItemsAndCategories = async () => {
     try {
-      const data = await clientGetInventaris();
-      setItems(data);
+      setLoading(true);
+      const [inventarisData, categoriesData] = await Promise.all([
+        clientGetInventaris(),
+        clientGetCategories()
+      ]);
+      setItems(inventarisData);
+      setCategories(categoriesData);
     } catch (e) {
-      console.error(e);
+      console.error('Error fetching data:', e);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchItems();
+    fetchItemsAndCategories();
   }, []);
 
   const handleDelete = (id: number) => {
@@ -73,7 +81,7 @@ export default function Inventaris() {
           color: '#fff',
           confirmButtonColor: '#3b82f6'
         });
-        fetchItems();
+        fetchItemsAndCategories();
       }
     });
   };
@@ -91,6 +99,14 @@ export default function Inventaris() {
       return;
     }
 
+    const catOptions = categories.length > 0 
+      ? categories.map(cat => `<option value="${cat.nama}" ${item.kategori === cat.nama ? 'selected' : ''}>${cat.nama}</option>`).join('')
+      : `
+        <option value="Elektronik" ${item.kategori === 'Elektronik' ? 'selected' : ''}>Elektronik</option>
+        <option value="ATK" ${item.kategori === 'ATK' ? 'selected' : ''}>ATK</option>
+        <option value="Furnitur" ${item.kategori === 'Furnitur' ? 'selected' : ''}>Furnitur</option>
+      `;
+
     Swal.fire({
         title: 'Edit Inventaris',
         html: `
@@ -102,9 +118,7 @@ export default function Inventaris() {
             <div>
               <label class="block text-xs font-semibold text-gray-400 mb-1">Kategori</label>
               <select id="swal-kategori" class="swal2-select !m-0 !w-full bg-gray-900 border border-gray-700 text-white rounded-xl pb-2">
-                  <option value="Elektronik" ${item.kategori === 'Elektronik' ? 'selected' : ''}>Elektronik</option>
-                  <option value="ATK" ${item.kategori === 'ATK' ? 'selected' : ''}>ATK</option>
-                  <option value="Furnitur" ${item.kategori === 'Furnitur' ? 'selected' : ''}>Furnitur</option>
+                  ${catOptions}
               </select>
             </div>
             <div>
@@ -155,7 +169,7 @@ export default function Inventaris() {
                     background: '#111827',
                     color: '#fff'
                 });
-                fetchItems();
+                fetchItemsAndCategories();
             } catch (err: any) {
                 Swal.fire({
                     icon: 'error',
@@ -183,6 +197,14 @@ export default function Inventaris() {
       return;
     }
 
+    const catOptions = categories.length > 0 
+      ? categories.map(cat => `<option value="${cat.nama}">${cat.nama}</option>`).join('')
+      : `
+        <option value="Elektronik">Elektronik</option>
+        <option value="ATK">ATK</option>
+        <option value="Furnitur">Furnitur</option>
+      `;
+
     Swal.fire({
         title: 'Tambah Inventaris',
         html: `
@@ -194,9 +216,7 @@ export default function Inventaris() {
             <div>
               <label class="block text-xs font-semibold text-gray-400 mb-1">Kategori</label>
               <select id="swal-kategori" class="swal2-select !m-0 !w-full bg-gray-900 border border-gray-700 text-white rounded-xl pb-2">
-                  <option value="Elektronik">Elektronik</option>
-                  <option value="ATK">ATK</option>
-                  <option value="Furnitur">Furnitur</option>
+                  ${catOptions}
               </select>
             </div>
             <div>
@@ -247,7 +267,7 @@ export default function Inventaris() {
                     background: '#111827',
                     color: '#fff'
                 });
-                fetchItems();
+                fetchItemsAndCategories();
             } catch (err: any) {
                 Swal.fire({
                     icon: 'error',

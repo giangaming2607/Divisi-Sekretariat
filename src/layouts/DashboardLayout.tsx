@@ -3,7 +3,7 @@ import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { useAuthStore, useThemeStore } from '@/src/lib/store';
 import { 
   Menu, X, LayoutDashboard, Package, CalendarDays, 
-  Target, Bot, LogOut, Settings, Sun, Moon, Users 
+  Target, Bot, LogOut, Settings, Sun, Moon, Users, Tags
 } from 'lucide-react';
 import { cn } from '@/src/lib/utils';
 import Swal from 'sweetalert2';
@@ -38,6 +38,7 @@ export default function Layout() {
     { label: 'Jadwal Piket', path: '/piket', icon: CalendarDays },
     { label: 'Program Kerja', path: '/proker', icon: Target },
     { label: 'Kelola User', path: '/users', icon: Users, adminOnly: true },
+    { label: 'Kelola Kategori', path: '/categories', icon: Tags, adminOnly: true },
     { label: 'Bot WhatsApp', path: '/wa-bot', icon: Bot, adminOnly: true },
     { label: 'Pengaturan', path: '/settings', icon: Settings, adminOnly: true },
   ];
