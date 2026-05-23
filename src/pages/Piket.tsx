@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { CalendarDays, Plus, Trash2, Bell, CheckSquare } from 'lucide-react';
+import { CalendarDays, Plus, Trash2, Bell, CheckSquare, FileSpreadsheet, Printer } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { useAuthStore } from '@/src/lib/store';
 import { 
@@ -332,6 +332,265 @@ export default function Piket() {
     });
   };
 
+  const handleExportExcel = () => {
+    if (items.length === 0) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Data Kosong',
+        text: 'Tidak ada data roster piket untuk diexport!',
+        background: '#111827',
+        color: '#fff',
+        confirmButtonColor: '#3b82f6'
+      });
+      return;
+    }
+
+    const headers = ['No', 'Nama Anggota', 'Hari Piket', 'Tanggal', 'Jam', 'Tugas', 'Nomor WA'];
+    
+    // Sort items by day index to keep it orderly in the spreadsheet
+    const dayOrder = ['senin', 'selasa', 'rabu', 'kamis', 'jumat', 'sabtu', 'minggu'];
+    const sortedItems = [...items].sort((a, b) => {
+      const idxA = dayOrder.indexOf((a.hari || '').trim().toLowerCase());
+      const idxB = dayOrder.indexOf((b.hari || '').trim().toLowerCase());
+      return idxA - idxB;
+    });
+
+    const csvRows = [
+      'sep=,', // Tell Excel this uses comma explicitly so columns parse as a perfect table
+      headers.join(','),
+      ...sortedItems.map((item, index) => {
+        const safeNama = `"${(item.nama || '').replace(/"/g, '""')}"`;
+        const safeHari = `"${(item.hari || '').replace(/"/g, '""')}"`;
+        const safeTanggal = `"${(item.tanggal || '').replace(/"/g, '""')}"`;
+        const safeJam = `"${(item.jam || '').replace(/"/g, '""')}"`;
+        const safeTugas = `"${(item.tugas || '').replace(/"/g, '""')}"`;
+        const safeWA = `"${(item.nomor_wa || '').replace(/"/g, '""')}"`;
+        return [
+          index + 1,
+          safeNama,
+          safeHari,
+          safeTanggal,
+          safeJam,
+          safeTugas,
+          safeWA
+        ].join(',');
+      })
+    ];
+
+    const csvContent = '\uFEFF' + csvRows.join('\r\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `Roster_Piket_OSIM_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    Swal.fire({
+      icon: 'success',
+      title: 'Berhasil!',
+      text: 'File Excel (CSV) roster piket mingguan berhasil diunduh.',
+      background: '#111827',
+      color: '#fff',
+      confirmButtonColor: '#10b981'
+    });
+  };
+
+  const handlePrintPDF = () => {
+    if (items.length === 0) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Data Kosong',
+        text: 'Tidak ada data roster piket untuk dicetak!',
+        background: '#111827',
+        color: '#fff',
+        confirmButtonColor: '#3b82f6'
+      });
+      return;
+    }
+
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Pop-Up Terblokir',
+        text: 'Harap izinkan pop-up di browser Anda untuk mencetak roster.',
+        background: '#111827',
+        color: '#fff',
+        confirmButtonColor: '#ef4444'
+      });
+      return;
+    }
+
+    const dateStr = new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
+    
+    // Group Roster by Day name
+    const dayOrder = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
+    
+    const tableSkeleton = dayOrder.map(day => {
+      const piketByDay = items.filter(
+        p => p.hari && p.hari.trim().toLowerCase() === day.toLowerCase()
+      );
+      
+      if (piketByDay.length === 0) {
+        return `
+          <tr>
+            <td style="font-weight: bold; background-color: #f9fafb; text-align: center; padding: 16px;">${day.toUpperCase()}</td>
+            <td colspan="4" style="text-align: center; color: #9ca3af; font-style: italic; padding: 16px;">Tidak ada jadwal piket</td>
+          </tr>
+        `;
+      }
+
+      return piketByDay.map((p, pIdx) => {
+        return `
+          <tr>
+            ${pIdx === 0 ? `<td rowspan="${piketByDay.length}" style="font-weight: bold; vertical-align: middle; background-color: #f3f4f6; width: 15%; text-align: center; color: #111827; border-right: 2px solid #d1d5db; padding: 16px;">${day.toUpperCase()}</td>` : ''}
+            <td style="width: 25%; font-weight: 700; color: #111827; padding: 16px;">${p.nama}</td>
+            <td style="width: 15%; text-align: center; font-family: monospace; font-size: 13px; font-weight: 600; padding: 16px;">${p.jam || '07:00'} WIB</td>
+            <td style="width: 30%; color: #374151; padding: 16px; line-height: 1.5;">${p.tugas}</td>
+            <td style="width: 15%; text-align: center; font-family: monospace; font-size: 13px; color: #047857; font-weight: 600; padding: 16px;">${p.nomor_wa || '-'}</td>
+          </tr>
+        `;
+      }).join('');
+    }).join('');
+
+    const htmlContent = `
+      <html>
+        <head>
+          <title>Roster Piket Mingguan OSIM</title>
+          <style>
+            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+            body {
+              font-family: 'Inter', sans-serif;
+              color: #1f2937;
+              padding: 40px;
+              background-color: #ffffff;
+            }
+            .header {
+              text-align: center;
+              border-bottom: 3px double #1f2937;
+              padding-bottom: 15px;
+              margin-bottom: 35px;
+            }
+            .header h1 {
+              margin: 0;
+              font-size: 22px;
+              text-transform: uppercase;
+              letter-spacing: 0.5px;
+              color: #111827;
+            }
+            .header h2 {
+              margin: 5px 0 0 0;
+              font-size: 14px;
+              font-weight: 500;
+              color: #4b5563;
+              text-transform: uppercase;
+            }
+            .meta-info {
+              display: flex;
+              justify-content: space-between;
+              font-size: 12px;
+              color: #4b5563;
+              margin-bottom: 25px;
+              font-weight: 500;
+              border-bottom: 1px dashed #e5e7eb;
+              padding-bottom: 10px;
+            }
+            table {
+              width: 100%;
+              border-collapse: collapse;
+              margin-top: 15px;
+            }
+            th {
+              background-color: #111827;
+              color: #ffffff;
+              border: 1px solid #111827;
+              padding: 14px 16px;
+              font-size: 11px;
+              font-weight: 700;
+              text-transform: uppercase;
+              letter-spacing: 0.5px;
+              text-align: left;
+            }
+            td {
+              border: 1px solid #d1d5db;
+              font-size: 13px;
+              color: #1f2937;
+            }
+            tr:nth-child(even) td[rowspan] {
+              background-color: #f3f4f6;
+            }
+            tr:nth-child(even) {
+              background-color: #f9fafb;
+            }
+            .footer-signature {
+              margin-top: 70px;
+              display: flex;
+              justify-content: flex-end;
+            }
+            .sig-box {
+              text-align: center;
+              font-size: 12px;
+              width: 220px;
+            }
+            .sig-line {
+              margin-top: 85px;
+              border-top: 1px solid #1f2937;
+              padding-top: 5px;
+              font-weight: 700;
+            }
+            @media print {
+              body { padding: 20px; }
+              button { display: none; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>JADWAL ROSTER PIKET MINGGUAN ANGGOTA</h1>
+            <h2>ORGANISASI SISWA INTRA SEKOLAH (OSIM)</h2>
+          </div>
+          <div class="meta-info">
+            <div>Dibuat oleh: ${user?.username || 'Admin'}</div>
+            <div>Tanggal Cetak: ${dateStr}</div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 15%; text-align: center;">HARI</th>
+                <th style="width: 25%">NAMA PETUGAS</th>
+                <th style="width: 15%; text-align: center;">JAM MULAI</th>
+                <th style="width: 30%">TUGAS (TANGGUNG JAWAB)</th>
+                <th style="width: 15%; text-align: center;">NO WHATSAPP</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${tableSkeleton}
+            </tbody>
+          </table>
+          <div class="footer-signature">
+            <div class="sig-box">
+              <p>Mengetahui,</p>
+              <p style="margin-top: 5px; font-weight: 500;">Pengurus OSIM Harian</p>
+              <div class="sig-line">${user?.username || 'Admin'}</div>
+            </div>
+          </div>
+          <script>
+            window.onload = function() {
+              window.print();
+              setTimeout(function() { window.close(); }, 500);
+            };
+          </script>
+        </body>
+      </html>
+    `;
+
+    printWindow.document.write(htmlContent);
+    printWindow.document.close();
+  };
+
   const daysOfWeek = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
   const todayName = new Date().toLocaleDateString('id-ID', { weekday: 'long' });
 
@@ -344,14 +603,28 @@ export default function Piket() {
           </h2>
           <p className="text-gray-500 dark:text-gray-400 mt-1">Sistem penjadwalan teratur dan reminder WA otomatis</p>
         </div>
-        {user?.role === 'admin' && (
+        <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
           <button 
-            onClick={handleAdd} 
-            className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white px-4 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-lg shadow-emerald-500/20"
+            onClick={handleExportExcel} 
+            className="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-lg shadow-emerald-500/30 font-medium text-sm"
           >
-            <Plus size={20} /> Tambah Jadwal Minggu ini
+            <FileSpreadsheet size={18} /> Export Excel
           </button>
-        )}
+          <button 
+            onClick={handlePrintPDF} 
+            className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-lg shadow-blue-500/30 font-medium text-sm"
+          >
+            <Printer size={18} /> Cetak Roster
+          </button>
+          {user?.role === 'admin' && (
+            <button 
+              onClick={handleAdd} 
+              className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white px-4 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-lg shadow-emerald-500/20 font-medium text-sm"
+            >
+              <Plus size={20} /> Tambah Jadwal Minggu ini
+            </button>
+          )}
+        </div>
       </div>
 
       {loading ? (
@@ -360,101 +633,103 @@ export default function Piket() {
           <p className="text-gray-500 text-sm">Menyusun roster mingguan...</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-7 gap-4 items-start pb-10">
-          {daysOfWeek.map(day => {
-            const piketByDay = items.filter(
-              p => p.hari && p.hari.trim().toLowerCase() === day.toLowerCase()
-            );
-            const isToday = todayName.toLowerCase() === day.toLowerCase();
+        <div className="overflow-x-auto pb-6 custom-scrollbar -mx-4 px-4 sm:-mx-6 sm:px-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-7 gap-4 items-start pb-4 w-full xl:min-w-[1540px]">
+            {daysOfWeek.map(day => {
+              const piketByDay = items.filter(
+                p => p.hari && p.hari.trim().toLowerCase() === day.toLowerCase()
+              );
+              const isToday = todayName.toLowerCase() === day.toLowerCase();
 
-            return (
-              <div 
-                key={day} 
-                className={cn(
-                  "rounded-2xl border p-4 transition-all duration-300 relative flex flex-col min-h-[350px]",
-                  isToday 
-                    ? "bg-emerald-500/10 border-emerald-500/30 shadow-lg shadow-emerald-500/5 ring-1 ring-emerald-500/20" 
-                    : "bg-white dark:bg-gray-900/40 border-gray-200 dark:border-gray-800/80 hover:border-gray-300 dark:hover:border-gray-700/80"
-                )}
-              >
-                {/* Header day */}
-                <div className="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-gray-800/60 mb-3">
-                  <div className="flex items-center space-x-2">
+              return (
+                <div 
+                  key={day} 
+                  className={cn(
+                    "rounded-2xl border p-4 transition-all duration-300 relative flex flex-col min-h-[350px] w-full",
+                    isToday 
+                      ? "bg-emerald-500/10 border-emerald-500/30 shadow-lg shadow-emerald-500/5 ring-1 ring-emerald-500/20" 
+                      : "bg-white dark:bg-gray-900/40 border-gray-200 dark:border-gray-800/80 hover:border-gray-300 dark:hover:border-gray-700/80"
+                  )}
+                >
+                  {/* Header day */}
+                  <div className="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-gray-800/60 mb-3">
+                    <div className="flex items-center space-x-2">
+                      <span className={cn(
+                        "w-2.5 h-2.5 rounded-full",
+                        isToday ? "bg-emerald-500 animate-ping" : "bg-gray-400 dark:bg-gray-700"
+                      )}></span>
+                      <span className="font-bold text-base dark:text-white">{day}</span>
+                    </div>
                     <span className={cn(
-                      "w-2.5 h-2.5 rounded-full",
-                      isToday ? "bg-emerald-500 animate-ping" : "bg-gray-400 dark:bg-gray-700"
-                    )}></span>
-                    <span className="font-bold text-base dark:text-white">{day}</span>
+                      "text-[10px] font-mono font-bold rounded-full px-2 py-0.5",
+                      piketByDay.length > 0 
+                        ? "bg-emerald-500/15 text-emerald-500 dark:text-emerald-400" 
+                        : "bg-gray-100 dark:bg-gray-800 text-gray-400"
+                    )}>
+                      {piketByDay.length} Org
+                    </span>
                   </div>
-                  <span className={cn(
-                    "text-[10px] font-mono font-bold rounded-full px-2 py-0.5",
-                    piketByDay.length > 0 
-                      ? "bg-emerald-500/15 text-emerald-500 dark:text-emerald-400" 
-                      : "bg-gray-100 dark:bg-gray-800 text-gray-400"
-                  )}>
-                    {piketByDay.length} Org
-                  </span>
-                </div>
 
-                {/* Members of this day */}
-                <div className="space-y-3 flex-1 overflow-y-auto">
-                  {piketByDay.map(piket => (
-                    <div 
-                      key={piket.id} 
-                      className="p-3 bg-gray-50/75 dark:bg-gray-950/45 rounded-xl border border-gray-100 dark:border-gray-800/60 hover:scale-[1.02] transition-all duration-200"
-                    >
-                      <div className="flex justify-between items-start gap-1">
-                        <div className="min-w-0 flex-1">
-                          <h4 className="font-bold text-xs dark:text-white tracking-tight truncate" title={piket.nama}>
-                            {piket.nama}
-                          </h4>
-                          {piket.tanggal && (
-                            <span className="text-[9px] text-gray-500 block">{piket.tanggal}</span>
+                  {/* Members of this day */}
+                  <div className="space-y-3 flex-1 overflow-y-auto">
+                    {piketByDay.map(piket => (
+                      <div 
+                        key={piket.id} 
+                        className="p-3 bg-gray-50/75 dark:bg-gray-950/45 rounded-xl border border-gray-100 dark:border-gray-800/60 hover:scale-[1.02] transition-all duration-200"
+                      >
+                        <div className="flex justify-between items-start gap-1">
+                          <div className="min-w-0 flex-1">
+                            <h4 className="font-bold text-xs dark:text-white tracking-tight truncate" title={piket.nama}>
+                              {piket.nama}
+                            </h4>
+                            {piket.tanggal && (
+                              <span className="text-[9px] text-gray-500 block">{piket.tanggal}</span>
+                            )}
+                          </div>
+                          <span className="text-[9px] font-mono bg-blue-500/10 text-blue-500 dark:text-blue-400 border border-blue-500/20 px-1.5 py-0.5 rounded-md whitespace-nowrap">
+                            {piket.jam || '07:00'}
+                          </span>
+                        </div>
+
+                        <div className="mt-2 bg-white dark:bg-gray-900/40 rounded-lg p-2 border border-gray-100 dark:border-gray-800 text-left">
+                          <p className="text-[10px] text-gray-500 dark:text-gray-400 font-bold mb-0.5">Tugas:</p>
+                          <p className="text-[11px] text-gray-700 dark:text-gray-300 font-medium leading-relaxed line-clamp-2">
+                            {piket.tugas}
+                          </p>
+                        </div>
+
+                        <div className="flex gap-1.5 mt-2.5 pt-2 border-t border-gray-100 dark:border-gray-850/60 justify-end">
+                          <button 
+                            onClick={() => sendReminder(piket)} 
+                            className="p-1.5 bg-blue-500/10 hover:bg-blue-500/20 text-blue-500 dark:text-blue-400 rounded-lg transition-colors" 
+                            title="Kirim Reminder WA"
+                          >
+                            <Bell size={12} />
+                          </button>
+                          {user?.role === 'admin' && (
+                            <button 
+                              onClick={() => handleDelete(piket.id)} 
+                              className="p-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-500 dark:text-red-400 rounded-lg transition-colors" 
+                              title="Hapus Dari Roster"
+                            >
+                              <Trash2 size={12} />
+                            </button>
                           )}
                         </div>
-                        <span className="text-[9px] font-mono bg-blue-500/10 text-blue-500 dark:text-blue-400 border border-blue-500/20 px-1.5 py-0.5 rounded-md whitespace-nowrap">
-                          {piket.jam || '07:00'}
-                        </span>
                       </div>
+                    ))}
 
-                      <div className="mt-2 bg-white dark:bg-gray-900/40 rounded-lg p-2 border border-gray-100 dark:border-gray-800 text-left">
-                        <p className="text-[10px] text-gray-500 dark:text-gray-400 font-bold mb-0.5">Tugas:</p>
-                        <p className="text-[11px] text-gray-700 dark:text-gray-300 font-medium leading-relaxed line-clamp-2">
-                          {piket.tugas}
-                        </p>
+                    {piketByDay.length === 0 && (
+                      <div className="h-full flex flex-col items-center justify-center py-10 text-gray-400 dark:text-gray-600">
+                        <CheckSquare size={20} className="stroke-[1.5] mb-1.5 opacity-40 text-gray-400" />
+                        <p className="text-[11px] italic text-center">Roster Bersih</p>
                       </div>
-
-                      <div className="flex gap-1.5 mt-2.5 pt-2 border-t border-gray-100 dark:border-gray-850/60 justify-end">
-                        <button 
-                          onClick={() => sendReminder(piket)} 
-                          className="p-1.5 bg-blue-500/10 hover:bg-blue-500/20 text-blue-500 dark:text-blue-400 rounded-lg transition-colors" 
-                          title="Kirim Reminder WA"
-                        >
-                          <Bell size={12} />
-                        </button>
-                        {user?.role === 'admin' && (
-                          <button 
-                            onClick={() => handleDelete(piket.id)} 
-                            className="p-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-500 dark:text-red-400 rounded-lg transition-colors" 
-                            title="Hapus Dari Roster"
-                          >
-                            <Trash2 size={12} />
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-
-                  {piketByDay.length === 0 && (
-                    <div className="h-full flex flex-col items-center justify-center py-10 text-gray-400 dark:text-gray-600">
-                      <CheckSquare size={20} className="stroke-[1.5] mb-1.5 opacity-40 text-gray-400" />
-                      <p className="text-[11px] italic text-center">Roster Bersih</p>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       )}
     </div>

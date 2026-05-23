@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { PackageSearch, Plus, Edit, Trash2, Search, FileSpreadsheet } from 'lucide-react';
+import { PackageSearch, Plus, Edit, Trash2, Search, FileSpreadsheet, Printer } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { useAuthStore } from '@/src/lib/store';
 import { 
@@ -305,6 +305,195 @@ export default function Inventaris() {
     });
   };
 
+  const handlePrintPDF = () => {
+    if (filteredItems.length === 0) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Data Kosong',
+        text: 'Tidak ada data inventaris untuk dicetak!',
+        background: '#111827',
+        color: '#fff',
+        confirmButtonColor: '#3b82f6'
+      });
+      return;
+    }
+
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Pop-Up Terblokir',
+        text: 'Harap izinkan pop-up di browser Anda untuk mencetak laporan.',
+        background: '#111827',
+        color: '#fff',
+        confirmButtonColor: '#ef4444'
+      });
+      return;
+    }
+
+    const dateStr = new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
+
+    const htmlContent = `
+      <html>
+        <head>
+          <title>Laporan Inventaris OSIM</title>
+          <style>
+            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+            body {
+              font-family: 'Inter', sans-serif;
+              color: #1f2937;
+              padding: 40px;
+              background-color: #ffffff;
+            }
+            .header {
+              text-align: center;
+              border-bottom: 3px double #1f2937;
+              padding-bottom: 15px;
+              margin-bottom: 35px;
+            }
+            .header h1 {
+              margin: 0;
+              font-size: 22px;
+              text-transform: uppercase;
+              letter-spacing: 0.5px;
+              color: #111827;
+            }
+            .header h2 {
+              margin: 5px 0 0 0;
+              font-size: 14px;
+              font-weight: 500;
+              color: #4b5563;
+              text-transform: uppercase;
+            }
+            .meta-info {
+              display: flex;
+              justify-content: space-between;
+              font-size: 12px;
+              color: #4b5563;
+              margin-bottom: 25px;
+              font-weight: 500;
+              border-bottom: 1px dashed #e5e7eb;
+              padding-bottom: 10px;
+            }
+            table {
+              width: 100%;
+              border-collapse: collapse;
+              margin-top: 15px;
+            }
+            th {
+              background-color: #111827;
+              color: #ffffff;
+              border: 1px solid #111827;
+              padding: 14px 16px;
+              font-size: 11px;
+              font-weight: 700;
+              text-transform: uppercase;
+              letter-spacing: 0.5px;
+              text-align: left;
+            }
+            td {
+              border: 1px solid #d1d5db;
+              padding: 14px 16px;
+              font-size: 13px;
+              color: #1f2937;
+              line-height: 1.5;
+            }
+            tr:nth-child(even) {
+              background-color: #f9fafb;
+            }
+            .badge {
+              display: inline-block;
+              padding: 4px 8px;
+              font-size: 11px;
+              font-weight: 600;
+              border-radius: 6px;
+              text-transform: uppercase;
+            }
+            .badge-baik { background-color: #e6f4ea; color: #137333; border: 1px solid #ceead6; }
+            .badge-rusak-ringan { background-color: #fef7e0; color: #b06000; border: 1px solid #feebc8; }
+            .badge-rusak-berat { background-color: #fce8e6; color: #c5221f; border: 1px solid #fad2cf; }
+            .badge-tersedia { background-color: #e8f0fe; color: #1a73e8; border: 1px solid #d2e3fc; }
+            .badge-dipinjam { background-color: #f3e8ff; color: #6b21a8; border: 1px solid #e9d5ff; }
+            .footer-signature {
+              margin-top: 70px;
+              display: flex;
+              justify-content: flex-end;
+            }
+            .sig-box {
+              text-align: center;
+              font-size: 12px;
+              width: 220px;
+            }
+            .sig-line {
+              margin-top: 85px;
+              border-top: 1px solid #1f2937;
+              padding-top: 5px;
+              font-weight: 700;
+            }
+            @media print {
+              body { padding: 20px; }
+              button { display: none; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>LAPORAN RESMI DATA INVENTARIS BARANG</h1>
+            <h2>ORGANISASI SISWA INTRA SEKOLAH (OSIM)</h2>
+          </div>
+          <div class="meta-info">
+            <div>Dibuat oleh: ${user?.username || 'Admin'}</div>
+            <div>Tanggal Cetak: ${dateStr}</div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 8%; text-align: center;">NO</th>
+                <th style="width: 32%">NAMA BARANG</th>
+                <th style="width: 18%">KATEGORI</th>
+                <th style="width: 12%; text-align: center;">JUMLAH</th>
+                <th style="width: 15%">KONDISI</th>
+                <th style="width: 15%">STATUS BARANG</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${filteredItems.map((item, index) => {
+                const kondisiClass = item.kondisi === 'Baik' ? 'badge-baik' : item.kondisi === 'Rusak Ringan' ? 'badge-rusak-ringan' : 'badge-rusak-berat';
+                const statusClass = item.status === 'Tersedia' ? 'badge-tersedia' : 'badge-dipinjam';
+                return `
+                  <tr>
+                    <td style="text-align: center; font-weight: 600;">${index + 1}</td>
+                    <td style="font-weight: 700; padding-left: 18px;">${item.nama}</td>
+                    <td style="color: #4b5563;">${item.kategori}</td>
+                    <td style="text-align: center; font-weight: 700;">${item.jumlah || 1} Pcs</td>
+                    <td><span class="badge ${kondisiClass}">${item.kondisi}</span></td>
+                    <td><span class="badge ${statusClass}">${item.status}</span></td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+          <div class="footer-signature">
+            <div class="sig-box">
+              <p>Mengetahui,</p>
+              <p style="margin-top: 5px; font-weight: 500;">Pengurus OSIM Harian</p>
+              <div class="sig-line">${user?.username || 'Admin'}</div>
+            </div>
+          </div>
+          <script>
+            window.onload = function() {
+              window.print();
+              setTimeout(function() { window.close(); }, 500);
+            };
+          </script>
+        </body>
+      </html>
+    `;
+
+    printWindow.document.write(htmlContent);
+    printWindow.document.close();
+  };
+
   const handleExportExcel = () => {
     if (filteredItems.length === 0) {
       Swal.fire({
@@ -323,6 +512,7 @@ export default function Inventaris() {
     
     // Rows mapping
     const csvRows = [
+      'sep=,', // Inform Excel to use comma as field separator cleanly
       headers.join(','), // Header row
       ...filteredItems.map((item, index) => {
         const safeNama = `"${item.nama.replace(/"/g, '""')}"`;
@@ -375,11 +565,14 @@ export default function Inventaris() {
         </div>
         
         <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
-          <button onClick={handleExportExcel} className="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-lg shadow-emerald-500/30 font-medium">
+          <button onClick={handleExportExcel} className="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-lg shadow-emerald-500/30 font-medium text-sm">
              <FileSpreadsheet size={18} /> Export Excel
           </button>
+          <button onClick={handlePrintPDF} className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-lg shadow-blue-500/30 font-medium text-sm">
+             <Printer size={18} /> Cetak Laporan
+          </button>
           {user?.role === 'admin' && (
-            <button onClick={handleAdd} className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white px-4 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-lg shadow-blue-500/30 font-medium">
+            <button onClick={handleAdd} className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white px-4 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-lg shadow-blue-500/30 font-medium text-sm">
                <Plus size={18} /> Tambah Barang
             </button>
           )}
