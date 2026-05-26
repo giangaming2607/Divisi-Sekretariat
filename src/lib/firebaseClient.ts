@@ -241,6 +241,8 @@ export interface InventarisItem {
   kondisi: string;
   status: string;
   jumlah: number;
+  lokasi?: string;
+  satuan?: string;
 }
 
 export async function clientGetInventaris(): Promise<InventarisItem[]> {

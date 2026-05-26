@@ -122,7 +122,13 @@ export default function Inventaris() {
             </div>
             <div>
               <label class="block text-xs font-semibold text-gray-400 mb-1">Jumlah / Stok</label>
-              <input id="swal-jumlah" type="number" min="1" class="swal2-input !m-0 !w-full bg-gray-900 border border-gray-700 text-white rounded-xl" placeholder="Contoh: 10" value="${item.jumlah || 1}">
+              <div class="flex gap-2">
+                <input id="swal-jumlah" type="number" min="1" class="swal2-input !m-0 !w-full bg-gray-900 border border-gray-700 text-white rounded-xl flex-1" placeholder="Contoh: 10" value="${item.jumlah || 1}">
+                <select id="swal-satuan" class="swal2-select !m-0 !w-32 bg-gray-900 border border-gray-700 text-white rounded-xl pb-2">
+                  <option value="Pcs" ${item.satuan === 'Pcs' ? 'selected' : ''}>Pcs</option>
+                  <option value="Pack" ${item.satuan === 'Pack' ? 'selected' : ''}>Pack</option>
+                </select>
+              </div>
             </div>
             <div>
               <label class="block text-xs font-semibold text-gray-400 mb-1">Kategori</label>
@@ -161,6 +167,7 @@ export default function Inventaris() {
         preConfirm: () => {
           const nama = (document.getElementById('swal-nama') as HTMLInputElement).value.trim();
           const jumlahVal = (document.getElementById('swal-jumlah') as HTMLInputElement).value;
+          const satuan = (document.getElementById('swal-satuan') as HTMLSelectElement).value;
           const kategori = (document.getElementById('swal-kategori') as HTMLSelectElement).value;
           const kondisi = (document.getElementById('swal-kondisi') as HTMLSelectElement).value;
           const lokasi = (document.getElementById('swal-lokasi') as HTMLInputElement).value.trim();
@@ -176,7 +183,7 @@ export default function Inventaris() {
             Swal.showValidationMessage('Jumlah barang minimal 1');
             return false;
           }
-          return { nama, jumlah, kategori, kondisi, lokasi, status };
+          return { nama, jumlah, satuan, kategori, kondisi, lokasi, status };
         }
     }).then(async (result) => {
         if (result.isConfirmed && result.value) {
@@ -236,7 +243,13 @@ export default function Inventaris() {
             </div>
             <div>
               <label class="block text-xs font-semibold text-gray-400 mb-1">Jumlah / Stok</label>
-              <input id="swal-jumlah" type="number" min="1" value="1" class="swal2-input !m-0 !w-full bg-gray-900 border border-gray-700 text-white rounded-xl" placeholder="Contoh: 1">
+              <div class="flex gap-2">
+                <input id="swal-jumlah" type="number" min="1" value="1" class="swal2-input !m-0 !w-full bg-gray-900 border border-gray-700 text-white rounded-xl flex-1" placeholder="Contoh: 1">
+                <select id="swal-satuan" class="swal2-select !m-0 !w-32 bg-gray-900 border border-gray-700 text-white rounded-xl pb-2">
+                  <option value="Pcs">Pcs</option>
+                  <option value="Pack">Pack</option>
+                </select>
+              </div>
             </div>
             <div>
               <label class="block text-xs font-semibold text-gray-400 mb-1">Kategori</label>
@@ -275,6 +288,7 @@ export default function Inventaris() {
         preConfirm: () => {
           const nama = (document.getElementById('swal-nama') as HTMLInputElement).value.trim();
           const jumlahVal = (document.getElementById('swal-jumlah') as HTMLInputElement).value;
+          const satuan = (document.getElementById('swal-satuan') as HTMLSelectElement).value;
           const kategori = (document.getElementById('swal-kategori') as HTMLSelectElement).value;
           const kondisi = (document.getElementById('swal-kondisi') as HTMLSelectElement).value;
           const lokasi = (document.getElementById('swal-lokasi') as HTMLInputElement).value.trim();
@@ -290,7 +304,7 @@ export default function Inventaris() {
             Swal.showValidationMessage('Jumlah barang minimal 1');
             return false;
           }
-          return { nama, jumlah, kategori, kondisi, lokasi, status };
+          return { nama, jumlah, satuan, kategori, kondisi, lokasi, status };
         }
     }).then(async (result) => {
         if (result.isConfirmed && result.value) {
@@ -480,7 +494,7 @@ export default function Inventaris() {
                     <td style="text-align: center; font-weight: 600;">${index + 1}</td>
                     <td style="font-weight: 700; padding-left: 18px;">${item.nama}</td>
                     <td style="color: #4b5563;">${item.kategori}</td>
-                    <td style="text-align: center; font-weight: 700;">${item.jumlah || 1} Pcs</td>
+                    <td style="text-align: center; font-weight: 700;">${item.jumlah || 1} ${item.satuan || 'Pcs'}</td>
                     <td><span class="badge ${kondisiClass}">${item.kondisi}</span></td>
                     <td style="color: #4b5563;">${item.lokasi || '-'}</td>
                     <td><span class="badge ${statusClass}">${item.status}</span></td>
@@ -540,7 +554,7 @@ export default function Inventaris() {
           index + 1,
           safeNama,
           safeKategori,
-          item.jumlah || 1,
+          `${item.jumlah || 1} ${item.satuan || 'Pcs'}`,
           safeKondisi,
           safeLokasi,
           safeStatus
@@ -623,7 +637,8 @@ export default function Inventaris() {
                 lokasi: lokasi ? String(lokasi).trim() : '',
                 kategori: 'Lainnya',
                 status: 'Tersedia',
-                jumlah: 1
+                jumlah: 1,
+                satuan: 'Pcs'
               });
               successCount++;
             } catch (err) {
@@ -755,7 +770,7 @@ export default function Inventaris() {
                                 <span className="px-3.5 py-1.5 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-xl text-xs">{item.kategori}</span>
                             </td>
                             <td className="px-6 py-4">
-                                <span className="px-3 py-1 bg-purple-500/10 text-purple-400 border border-purple-500/20 rounded-xl font-mono text-xs">{item.jumlah || 1} Pcs</span>
+                                <span className="px-3 py-1 bg-purple-500/10 text-purple-400 border border-purple-500/20 rounded-xl font-mono text-xs">{item.jumlah || 1} {item.satuan || 'Pcs'}</span>
                             </td>
                             <td className="px-6 py-4">
                                 <span className={`px-3.5 py-1.5 rounded-xl text-xs border ${
