@@ -25,6 +25,7 @@ interface User {
 export default function Dashboard() {
   const { user } = useAuthStore();
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [useJakartaTime, setUseJakartaTime] = useState(true);
   
   // Real Firestore States
   const [inventarisCount, setInventarisCount] = useState<number>(0);
@@ -48,6 +49,86 @@ export default function Dashboard() {
         popup: 'rounded-2xl',
       }
     });
+  };
+
+  useEffect(() => {
+    const askAndRecordActivity = async () => {
+      const sessionRecorded = sessionStorage.getItem('login_activity_recorded');
+      const hasAskedLocation = localStorage.getItem('has_asked_location_v2');
+
+      const record = async (lat: number | null, lng: number | null) => {
+        if (!sessionRecorded) {
+          sessionStorage.setItem('login_activity_recorded', 'true');
+          try {
+            // Import dynamically or ensure clientRecordLogin is available
+            const { clientRecordLogin } = await import('../lib/firebaseClient');
+            await clientRecordLogin({
+              username: user ? user.username : 'Viewer',
+              role: user ? user.role : 'viewer',
+              waktu: new Date().toISOString(),
+              latitude: lat,
+              longitude: lng,
+              timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+              userAgent: navigator.userAgent
+            });
+          } catch (e) {
+            console.error('Failed to record activity', e);
+          }
+        }
+      };
+
+      if (!user && !hasAskedLocation) {
+        const result = await Swal.fire({
+          title: 'Izin Lokasi',
+          text: 'Kami membutuhkan izin lokasi Anda untuk menyesuaikan jam dashboard. Jam akan menggunakan waktu Jakarta terlebih dahulu sebelum Anda memberikan izin.',
+          icon: 'info',
+          showCancelButton: true,
+          confirmButtonText: 'Izinkan',
+          cancelButtonText: 'Nanti',
+          confirmButtonColor: '#3b82f6'
+        });
+
+        localStorage.setItem('has_asked_location_v2', 'true');
+
+        if (result.isConfirmed) {
+          navigator.geolocation.getCurrentPosition(
+            (pos) => {
+              setUseJakartaTime(false);
+              record(pos.coords.latitude, pos.coords.longitude);
+            },
+            () => {
+              record(null, null);
+            }
+          );
+          return;
+        }
+      }
+
+      // If user is admin or we already asked
+      if (navigator.permissions && navigator.permissions.query) {
+         navigator.permissions.query({ name: 'geolocation' }).then(res => {
+           if (res.state === 'granted') {
+             setUseJakartaTime(false);
+             navigator.geolocation.getCurrentPosition(
+               (pos) => record(pos.coords.latitude, pos.coords.longitude),
+               () => record(null, null)
+             );
+           } else {
+             record(null, null);
+           }
+         }).catch(() => record(null, null));
+      } else {
+         record(null, null);
+      }
+    };
+
+    askAndRecordActivity();
+  }, [user]);
+
+  const getDisplayTime = () => {
+    if (!useJakartaTime) return currentTime;
+    const utc = currentTime.getTime() + (currentTime.getTimezoneOffset() * 60000);
+    return new Date(utc + (3600000 * 7)); // Jakarta is UTC+7
   };
 
   useEffect(() => {
@@ -156,7 +237,7 @@ export default function Dashboard() {
           </p>
           <div className="mt-8 flex items-center space-x-2 bg-black/20 w-fit px-4 py-2 rounded-xl backdrop-blur-sm border border-white/10">
              <Activity className="text-blue-300 animate-pulse" size={18} />
-             <span className="font-mono">{format(currentTime, 'EEEE, dd MMMM yyyy HH:mm:ss', { locale: id })}</span>
+             <span className="font-mono">{format(getDisplayTime(), 'EEEE, dd MMMM yyyy HH:mm:ss', { locale: id })}</span>
           </div>
         </div>
         

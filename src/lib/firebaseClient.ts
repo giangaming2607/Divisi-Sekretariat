@@ -456,6 +456,31 @@ export async function clientSaveRenovasiSettings(settings: RenovasiSettings): Pr
   await setDoc(doc(db, 'settings', 'renovasi_settings'), settings);
 }
 
+export interface LoginActivity {
+  id: string;
+  username: string;
+  role: string;
+  waktu: string;
+  latitude: number | null;
+  longitude: number | null;
+  timezone: string;
+  userAgent: string;
+}
+
+export async function clientRecordLogin(activity: Omit<LoginActivity, 'id'>): Promise<void> {
+  const id = Date.now().toString();
+  await setDoc(doc(db, 'login_activity', id), {
+    id,
+    ...activity
+  });
+}
+
+export async function clientGetLoginActivities(): Promise<LoginActivity[]> {
+  const snap = await getDocs(collection(db, 'login_activity'));
+  return snap.docs.map(d => d.data() as LoginActivity).sort((a, b) => Number(b.id) - Number(a.id));
+}
+
+
 export interface AlbumSettings {
   songUrl: string;
   title?: string;

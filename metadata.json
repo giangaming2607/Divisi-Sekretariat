@@ -1,6 +1,6 @@
 {
   "name": "Sekretariat OSIM",
   "description": "Sistem informasi modern untuk arsip, inventaris, jadwal piket, proker, dan bot WhatsApp otomatis",
-  "requestFramePermissions": [],
+  "requestFramePermissions": ["geolocation"],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

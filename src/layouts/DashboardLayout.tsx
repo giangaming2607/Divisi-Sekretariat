@@ -4,7 +4,7 @@ import { useAuthStore, useThemeStore } from '@/src/lib/store';
 import { clientGetRenovasiSettings, RenovasiSettings } from '@/src/lib/firebaseClient';
 import { 
   Menu, X, LayoutDashboard, Package, CalendarDays, 
-  Target, Bot, LogOut, Settings, Sun, Moon, Users, Tags, MessageSquare, LogIn, Camera, Hammer
+  Target, Bot, LogOut, Settings, Sun, Moon, Users, Tags, MessageSquare, LogIn, Camera, Hammer, Activity
 } from 'lucide-react';
 import { cn } from '@/src/lib/utils';
 import Swal from 'sweetalert2';
@@ -55,6 +55,7 @@ export default function Layout() {
     { label: 'Kelola Kategori', path: '/categories', icon: Tags, adminOnly: true },
     { label: 'Bot WhatsApp', path: '/wa-bot', icon: Bot, adminOnly: true },
     { label: 'Renovasi Menu', path: '/renovasi', icon: Hammer, adminOnly: true },
+    { label: 'Aktivitas Login', path: '/aktivitas-login', icon: Activity, adminOnly: true },
     { label: 'Pengaturan', path: '/settings', icon: Settings, adminOnly: true },
   ];
 

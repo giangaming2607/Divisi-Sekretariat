@@ -15,6 +15,7 @@ import Categories from './pages/Categories';
 import InputInformasi from './pages/InputInformasi';
 import Album from './pages/Album';
 import RenovasiAdmin from './pages/RenovasiAdmin';
+import LoginActivities from './pages/LoginActivity';
 
 const ProtectedRoute = ({ children, adminOnly = false }: { children: React.ReactNode, adminOnly?: boolean }) => {
   const { isAuthenticated, user } = useAuthStore();
@@ -78,6 +79,7 @@ export default function App() {
           <Route path="categories" element={<ProtectedRoute adminOnly><Categories /></ProtectedRoute>} />
           <Route path="wa-bot" element={<ProtectedRoute adminOnly><WaBot /></ProtectedRoute>} />
           <Route path="renovasi" element={<ProtectedRoute adminOnly><RenovasiAdmin /></ProtectedRoute>} />
+          <Route path="aktivitas-login" element={<ProtectedRoute adminOnly><LoginActivities /></ProtectedRoute>} />
           <Route path="settings" element={<ProtectedRoute adminOnly><Settings /></ProtectedRoute>} />
         </Route>
       </Routes>
