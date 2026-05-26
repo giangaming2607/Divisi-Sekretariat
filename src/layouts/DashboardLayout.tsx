@@ -179,11 +179,18 @@ export default function Layout() {
         </header>
 
         {/* Page Content */}
-        <div className="flex-1 overflow-x-hidden overflow-y-auto p-4 sm:p-6 pb-24 lg:pb-6 relative">
-             <div className="max-w-7xl mx-auto w-full relative z-10">
+        <div className="flex-1 overflow-x-hidden overflow-y-auto p-4 sm:p-6 pb-24 lg:pb-6 relative flex flex-col">
+             <div className="max-w-7xl mx-auto w-full relative z-10 flex-1">
                 <Outlet />
              </div>
              
+             {/* Footer */}
+             <footer className="w-full text-center mt-12 mb-4 z-10">
+               <p className={cn("text-xs sm:text-sm transition-colors", theme === 'dark' ? "text-gray-500" : "text-gray-400")}>
+                 © Divisi Sekretariat — Dikembangkan Oleh Gian Aditya
+               </p>
+             </footer>
+
              {/* Background glow effects */}
              <div className="fixed top-20 right-20 w-64 h-64 bg-blue-600/10 rounded-full blur-[100px] pointer-events-none"></div>
              <div className="fixed bottom-20 left-40 w-96 h-96 bg-purple-600/10 rounded-full blur-[120px] pointer-events-none"></div>
