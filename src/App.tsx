@@ -17,7 +17,7 @@ import InputInformasi from './pages/InputInformasi';
 const ProtectedRoute = ({ children, adminOnly = false }: { children: React.ReactNode, adminOnly?: boolean }) => {
   const { isAuthenticated, user } = useAuthStore();
   
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (!isAuthenticated) return <Navigate to="/" replace />;
   if (adminOnly && user?.role !== 'admin') return <Navigate to="/" replace />;
   
   return <>{children}</>;
