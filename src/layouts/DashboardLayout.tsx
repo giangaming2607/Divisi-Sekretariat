@@ -3,7 +3,7 @@ import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { useAuthStore, useThemeStore } from '@/src/lib/store';
 import { 
   Menu, X, LayoutDashboard, Package, CalendarDays, 
-  Target, Bot, LogOut, Settings, Sun, Moon, Users, Tags
+  Target, Bot, LogOut, Settings, Sun, Moon, Users, Tags, MessageSquare, LogIn
 } from 'lucide-react';
 import { cn } from '@/src/lib/utils';
 import Swal from 'sweetalert2';
@@ -34,9 +34,10 @@ export default function Layout() {
 
   const navItems = [
     { label: 'Dashboard', path: '/', icon: LayoutDashboard },
+    { label: 'Input Informasi', path: '/informasi', icon: MessageSquare, adminOnly: true },
     { label: 'Inventaris', path: '/inventaris', icon: Package },
     { label: 'Jadwal Piket', path: '/piket', icon: CalendarDays },
-    { label: 'Program Kerja', path: '/proker', icon: Target },
+    { label: 'Program Kerja', path: '/proker', icon: Target, adminOnly: true },
     { label: 'Kelola User', path: '/users', icon: Users, adminOnly: true },
     { label: 'Kelola Kategori', path: '/categories', icon: Tags, adminOnly: true },
     { label: 'Bot WhatsApp', path: '/wa-bot', icon: Bot, adminOnly: true },
@@ -56,14 +57,14 @@ export default function Layout() {
       if (result.isConfirmed) {
         localStorage.removeItem('osim_user');
         setUser(null);
-        navigate('/login');
+        navigate('/');
       }
     });
   };
 
   return (
     <div className={cn(
-      "min-h-screen flex transition-colors duration-300 relative",
+      "min-h-screen flex transition-colors duration-300 relative overflow-hidden",
       theme === 'dark' ? "bg-gray-950 text-white" : "bg-gray-50 text-gray-900"
     )}>
       {/* Mobile Sidebar Overlay */}
@@ -76,12 +77,12 @@ export default function Layout() {
 
       {/* Sidebar */}
       <aside className={cn(
-        "fixed inset-y-0 left-0 z-50 w-64 transform transition-transform duration-300 ease-in-out border-r backdrop-blur-md rounded-r-3xl glass-panel shadow-2xl",
+        "fixed inset-y-0 left-0 z-50 w-64 transform transition-transform duration-300 ease-in-out border-r backdrop-blur-md rounded-r-3xl glass-panel shadow-2xl overflow-hidden flex flex-col",
         theme === 'dark' ? "bg-gray-900/90 border-gray-800" : "bg-white/90 border-gray-100",
         isSidebarOpen ? "translate-x-0" : "-translate-x-full"
       )}>
         <div className="flex items-center justify-between p-4 border-b border-gray-700/30">
-          <h2 className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+          <h2 className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent truncate cursor-pointer" onClick={() => navigate('/')}>
             Sekretariat OSIM
           </h2>
           <button onClick={() => setSidebarOpen(false)} className="lg:hidden p-1 rounded-md hover:bg-gray-800">
@@ -89,7 +90,7 @@ export default function Layout() {
           </button>
         </div>
 
-        <nav className="p-4 space-y-2">
+        <nav className="p-4 space-y-2 flex-1 overflow-y-auto">
           {navItems.filter(i => !i.adminOnly || user?.role === 'admin').map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.path;
@@ -119,14 +120,24 @@ export default function Layout() {
           })}
         </nav>
 
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-700/30">
-           <button
-            onClick={handleLogout}
-            className="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors"
-          >
-            <LogOut size={20} />
-            <span className="font-medium">Logout</span>
-          </button>
+        <div className="p-4 border-t border-gray-700/30 shrink-0">
+           {user ? (
+             <button
+              onClick={handleLogout}
+              className="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors"
+            >
+              <LogOut size={20} />
+              <span className="font-medium">Logout Admin</span>
+            </button>
+           ) : (
+             <button
+              onClick={() => navigate('/login')}
+              className="w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-blue-400 hover:bg-blue-500/10 hover:text-blue-300 transition-colors"
+            >
+              <LogIn size={20} />
+              <span className="font-medium">Login Admin</span>
+            </button>
+           )}
         </div>
       </aside>
 
@@ -137,7 +148,7 @@ export default function Layout() {
       )}>
         {/* Header */}
         <header className={cn(
-          "h-16 flex items-center justify-between px-6 sticky top-0 z-40 backdrop-blur-md border-b",
+          "h-16 flex items-center justify-between px-6 sticky top-0 z-40 backdrop-blur-md border-b shrink-0",
           theme === 'dark' ? "bg-gray-950/80 border-gray-800" : "bg-white/80 border-gray-200"
         )}>
            <div className="flex items-center space-x-4">
@@ -153,15 +164,17 @@ export default function Layout() {
              <button onClick={toggleTheme} className="p-2 rounded-full hover:bg-gray-800/50 transition-colors">
                 {theme === 'dark' ? <Sun size={20} className="text-yellow-400" /> : <Moon size={20} className="text-purple-600" />}
              </button>
-             <div className="flex items-center space-x-3">
-               <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center font-bold text-white shadow-lg shadow-purple-500/30">
-                 {user?.username.charAt(0).toUpperCase()}
+             {user && (
+               <div className="flex items-center space-x-3">
+                 <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center font-bold text-white shadow-lg shadow-purple-500/30">
+                   {user.username.charAt(0).toUpperCase()}
+                 </div>
+                 <div className="hidden md:block text-sm">
+                   <p className="font-medium">{user.username}</p>
+                   <p className="text-xs text-gray-500 capitalize">{user.role}</p>
+                 </div>
                </div>
-               <div className="hidden md:block text-sm">
-                 <p className="font-medium">{user?.username}</p>
-                 <p className="text-xs text-gray-500 capitalize">{user?.role}</p>
-               </div>
-             </div>
+             )}
            </div>
         </header>
 

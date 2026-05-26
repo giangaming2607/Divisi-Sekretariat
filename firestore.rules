@@ -36,5 +36,10 @@ service cloud.firestore {
     match /proker/{prokerId} {
       allow read, write: if true;
     }
+
+    // Match /informasi collection
+    match /informasi/{infoId} {
+      allow read, write: if true;
+    }
   }
 }

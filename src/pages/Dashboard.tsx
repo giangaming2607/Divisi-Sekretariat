@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useAuthStore } from '@/src/lib/store';
-import { Users, Package, CalendarDays, Target, Activity } from 'lucide-react';
+import { Users, Package, CalendarDays, Target, Activity, Megaphone } from 'lucide-react';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 import Swal from 'sweetalert2';
@@ -9,9 +9,11 @@ import {
   clientGetProker, 
   clientGetPiket, 
   clientGetUsers,
+  clientGetInformasi,
   InventarisItem,
   ProkerItem,
-  PiketItem
+  PiketItem,
+  InfoItem
 } from '../lib/firebaseClient';
 
 interface User {
@@ -32,6 +34,7 @@ export default function Dashboard() {
   
   const [piketToday, setPiketToday] = useState<PiketItem[]>([]);
   const [prokersActive, setProkersActive] = useState<ProkerItem[]>([]);
+  const [informasiTerbaru, setInformasiTerbaru] = useState<InfoItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
@@ -42,11 +45,12 @@ export default function Dashboard() {
   useEffect(() => {
     const loadDashboardData = async () => {
       try {
-        const [inventaris, prokers, pikets, users] = await Promise.all([
+        const [inventaris, prokers, pikets, users, infos] = await Promise.all([
           clientGetInventaris(),
           clientGetProker(),
           clientGetPiket(),
-          clientGetUsers()
+          clientGetUsers(),
+          clientGetInformasi()
         ]);
 
         // 1. Calculate count totals
@@ -65,6 +69,9 @@ export default function Dashboard() {
 
         // 3. active proker list
         setProkersActive(activeProkers);
+
+        // 4. Set informasi
+        setInformasiTerbaru(infos.slice(0, 3));
       } catch (err) {
         console.error('Error fetching dashboard states:', err);
       } finally {
@@ -125,7 +132,9 @@ export default function Dashboard() {
       {/* Welcome Banner */}
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-blue-600 to-purple-600 p-8 text-white shadow-xl">
         <div className="relative z-10">
-          <h2 className="text-3xl font-bold mb-2">Selamat datang, {user?.username}! 👋</h2>
+          <h2 className="text-3xl font-bold mb-2">
+            {user ? `Selamat datang, ${user.username}! 👋` : 'Selamat datang di Sekretariat OSIM! 👋'}
+          </h2>
           <p className="text-blue-100 max-w-xl">
             Sistem informasi manajemen Sekretariat OSIM. Kelola inventaris, program kerja, dan jadwal kegiatan dengan mudah.
           </p>
@@ -139,6 +148,29 @@ export default function Dashboard() {
         <div className="absolute -top-24 -right-24 w-64 h-64 bg-white/10 rounded-full blur-3xl pointer-events-none"></div>
         <div className="absolute -bottom-24 right-20 w-64 h-64 bg-blue-400/20 rounded-full blur-3xl pointer-events-none"></div>
       </div>
+
+      {/* Info Terbaru Section */}
+      {informasiTerbaru.length > 0 && (
+        <div className="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-5 shadow-sm">
+          <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400 mb-4">
+            <Megaphone size={22} className="animate-pulse" />
+            <h3 className="font-bold text-lg">Info Terbaru</h3>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {informasiTerbaru.map((info) => (
+              <div key={info.id} className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
+                <div className="flex justify-between items-start mb-2">
+                  <h4 className="font-bold text-gray-900 dark:text-white line-clamp-1">{info.judul}</h4>
+                  <span className="text-[10px] text-gray-500 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-full whitespace-nowrap">
+                    {format(new Date(info.tanggal), 'dd MMM yyyy', { locale: id })}
+                  </span>
+                </div>
+                <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-3 leading-relaxed whitespace-pre-wrap">{info.konten}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">

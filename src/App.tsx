@@ -12,6 +12,7 @@ import WaBot from './pages/WaBot';
 import Settings from './pages/Settings';
 import Users from './pages/Users';
 import Categories from './pages/Categories';
+import InputInformasi from './pages/InputInformasi';
 
 const ProtectedRoute = ({ children, adminOnly = false }: { children: React.ReactNode, adminOnly?: boolean }) => {
   const { isAuthenticated, user } = useAuthStore();
@@ -61,11 +62,15 @@ export default function App() {
       <Routes>
         <Route path="/login" element={<Login />} />
         
-        <Route path="/" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
+        <Route path="/" element={<DashboardLayout />}>
+          {/* Public viewer routes */}
           <Route index element={<Dashboard />} />
           <Route path="inventaris" element={<Inventaris />} />
           <Route path="piket" element={<Piket />} />
-          <Route path="proker" element={<Proker />} />
+          
+          {/* Protected routes */}
+          <Route path="informasi" element={<ProtectedRoute adminOnly><InputInformasi /></ProtectedRoute>} />
+          <Route path="proker" element={<ProtectedRoute adminOnly><Proker /></ProtectedRoute>} />
           <Route path="users" element={<ProtectedRoute adminOnly><Users /></ProtectedRoute>} />
           <Route path="categories" element={<ProtectedRoute adminOnly><Categories /></ProtectedRoute>} />
           <Route path="wa-bot" element={<ProtectedRoute adminOnly><WaBot /></ProtectedRoute>} />

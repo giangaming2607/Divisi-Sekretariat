@@ -31,6 +31,10 @@ export default function Login() {
     try {
       const loggedUser = await clientLogin(username, password);
       
+      if (loggedUser.role !== 'admin') {
+         throw new Error('Hanya admin yang diizinkan untuk login.');
+      }
+      
       // Cache session in localStorage for local persistence across reloads/devices
       localStorage.setItem('osim_user', JSON.stringify(loggedUser));
       setUser(loggedUser);
