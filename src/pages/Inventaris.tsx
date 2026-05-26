@@ -20,6 +20,7 @@ interface Item {
   status: string;
   jumlah: number;
   lokasi?: string;
+  satuan?: string;
 }
 
 export default function Inventaris() {

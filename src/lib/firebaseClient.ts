@@ -255,7 +255,9 @@ export async function clientGetInventaris(): Promise<InventarisItem[]> {
       kategori: data.kategori || '',
       kondisi: data.kondisi || '',
       status: data.status || '',
-      jumlah: data.jumlah !== undefined ? Number(data.jumlah) : 1
+      jumlah: data.jumlah !== undefined ? Number(data.jumlah) : 1,
+      lokasi: data.lokasi || '',
+      satuan: data.satuan || 'Pcs'
     };
   }).sort((a, b) => b.id - a.id);
 }
