@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { PackageSearch, Plus, Edit, Trash2, Search, FileSpreadsheet, Printer } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { PackageSearch, Plus, Edit, Trash2, Search, FileSpreadsheet, Printer, Download, Upload } from 'lucide-react';
 import Swal from 'sweetalert2';
+import * as XLSX from 'xlsx';
 import { useAuthStore } from '@/src/lib/store';
 import { 
   clientGetInventaris, 
@@ -18,6 +19,7 @@ interface Item {
   kondisi: string;
   status: string;
   jumlah: number;
+  lokasi?: string;
 }
 
 export default function Inventaris() {
@@ -26,6 +28,8 @@ export default function Inventaris() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const { user } = useAuthStore();
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const fetchItemsAndCategories = async () => {
     try {
@@ -135,6 +139,10 @@ export default function Inventaris() {
               </select>
             </div>
             <div>
+              <label class="block text-xs font-semibold text-gray-400 mb-1">Lokasi Barang</label>
+              <input id="swal-lokasi" class="swal2-input !m-0 !w-full bg-gray-900 border border-gray-700 text-white rounded-xl" placeholder="Contoh: Lemari A, Gudang B" value="${item.lokasi || ''}">
+            </div>
+            <div>
               <label class="block text-xs font-semibold text-gray-400 mb-1">Status Ketersediaan</label>
               <select id="swal-status" class="swal2-select !m-0 !w-full bg-gray-900 border border-gray-700 text-white rounded-xl pb-2">
                   <option value="Tersedia" ${item.status === 'Tersedia' ? 'selected' : ''}>Tersedia</option>
@@ -155,6 +163,7 @@ export default function Inventaris() {
           const jumlahVal = (document.getElementById('swal-jumlah') as HTMLInputElement).value;
           const kategori = (document.getElementById('swal-kategori') as HTMLSelectElement).value;
           const kondisi = (document.getElementById('swal-kondisi') as HTMLSelectElement).value;
+          const lokasi = (document.getElementById('swal-lokasi') as HTMLInputElement).value.trim();
           const status = (document.getElementById('swal-status') as HTMLSelectElement).value;
 
           const jumlah = Number(jumlahVal) || 1;
@@ -167,7 +176,7 @@ export default function Inventaris() {
             Swal.showValidationMessage('Jumlah barang minimal 1');
             return false;
           }
-          return { nama, jumlah, kategori, kondisi, status };
+          return { nama, jumlah, kategori, kondisi, lokasi, status };
         }
     }).then(async (result) => {
         if (result.isConfirmed && result.value) {
@@ -244,6 +253,10 @@ export default function Inventaris() {
               </select>
             </div>
             <div>
+              <label class="block text-xs font-semibold text-gray-400 mb-1">Lokasi Barang</label>
+              <input id="swal-lokasi" class="swal2-input !m-0 !w-full bg-gray-900 border border-gray-700 text-white rounded-xl" placeholder="Contoh: Lemari A, Gudang B">
+            </div>
+            <div>
               <label class="block text-xs font-semibold text-gray-400 mb-1">Status Ketersediaan</label>
               <select id="swal-status" class="swal2-select !m-0 !w-full bg-gray-900 border border-gray-700 text-white rounded-xl pb-2">
                   <option value="Tersedia">Tersedia</option>
@@ -264,6 +277,7 @@ export default function Inventaris() {
           const jumlahVal = (document.getElementById('swal-jumlah') as HTMLInputElement).value;
           const kategori = (document.getElementById('swal-kategori') as HTMLSelectElement).value;
           const kondisi = (document.getElementById('swal-kondisi') as HTMLSelectElement).value;
+          const lokasi = (document.getElementById('swal-lokasi') as HTMLInputElement).value.trim();
           const status = (document.getElementById('swal-status') as HTMLSelectElement).value;
 
           const jumlah = Number(jumlahVal) || 1;
@@ -276,7 +290,7 @@ export default function Inventaris() {
             Swal.showValidationMessage('Jumlah barang minimal 1');
             return false;
           }
-          return { nama, jumlah, kategori, kondisi, status };
+          return { nama, jumlah, kategori, kondisi, lokasi, status };
         }
     }).then(async (result) => {
         if (result.isConfirmed && result.value) {
@@ -448,12 +462,13 @@ export default function Inventaris() {
           <table>
             <thead>
               <tr>
-                <th style="width: 8%; text-align: center;">NO</th>
-                <th style="width: 32%">NAMA BARANG</th>
-                <th style="width: 18%">KATEGORI</th>
-                <th style="width: 12%; text-align: center;">JUMLAH</th>
-                <th style="width: 15%">KONDISI</th>
-                <th style="width: 15%">STATUS BARANG</th>
+                <th style="width: 5%; text-align: center;">NO</th>
+                <th style="width: 25%">NAMA BARANG</th>
+                <th style="width: 15%">KATEGORI</th>
+                <th style="width: 10%; text-align: center;">JUMLAH</th>
+                <th style="width: 13%">KONDISI</th>
+                <th style="width: 17%">LOKASI</th>
+                <th style="width: 15%">STATUS</th>
               </tr>
             </thead>
             <tbody>
@@ -467,6 +482,7 @@ export default function Inventaris() {
                     <td style="color: #4b5563;">${item.kategori}</td>
                     <td style="text-align: center; font-weight: 700;">${item.jumlah || 1} Pcs</td>
                     <td><span class="badge ${kondisiClass}">${item.kondisi}</span></td>
+                    <td style="color: #4b5563;">${item.lokasi || '-'}</td>
                     <td><span class="badge ${statusClass}">${item.status}</span></td>
                   </tr>
                 `;
@@ -508,7 +524,7 @@ export default function Inventaris() {
     }
 
     // Headers list
-    const headers = ['No', 'Nama Barang', 'Kategori', 'Jumlah / Stok', 'Kondisi', 'Status'];
+    const headers = ['No', 'Nama Barang', 'Kategori', 'Jumlah / Stok', 'Kondisi', 'Lokasi', 'Status'];
     
     // Rows mapping
     const csvRows = [
@@ -518,6 +534,7 @@ export default function Inventaris() {
         const safeNama = `"${item.nama.replace(/"/g, '""')}"`;
         const safeKategori = `"${item.kategori.replace(/"/g, '""')}"`;
         const safeKondisi = `"${item.kondisi.replace(/"/g, '""')}"`;
+        const safeLokasi = `"${(item.lokasi || '').replace(/"/g, '""')}"`;
         const safeStatus = `"${item.status.replace(/"/g, '""')}"`;
         return [
           index + 1,
@@ -525,6 +542,7 @@ export default function Inventaris() {
           safeKategori,
           item.jumlah || 1,
           safeKondisi,
+          safeLokasi,
           safeStatus
         ].join(',');
       })
@@ -552,11 +570,96 @@ export default function Inventaris() {
     });
   };
 
+  const handleDownloadTemplate = () => {
+    const ws = XLSX.utils.json_to_sheet([{
+      'Nomor': 1,
+      'Nama Barang': 'Contoh Barang',
+      'Kondisi Barang': 'Baik',
+      'Lokasi Barang': 'Lemari A'
+    }]);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Template Inventaris");
+    XLSX.writeFile(wb, "template_inventaris.xlsx");
+  };
+
+  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (user?.role !== 'admin') {
+      Swal.fire({
+        icon: 'error',
+        title: 'Akses Ditolak',
+        text: 'Hanya Admin yang dapat mengimport inventaris!',
+        background: '#111827',
+        color: '#fff',
+        confirmButtonColor: '#ef4444'
+      });
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = async (evt) => {
+      try {
+        const bstr = evt.target?.result;
+        const wb = XLSX.read(bstr, { type: 'binary' });
+        const wsname = wb.SheetNames[0];
+        const ws = wb.Sheets[wsname];
+        const data = XLSX.utils.sheet_to_json(ws);
+        
+        let successCount = 0;
+        let errorCount = 0;
+
+        for (const row of data as any[]) {
+          const nama = row['Nama Barang'];
+          const kondisi = row['Kondisi Barang'];
+          const lokasi = row['Lokasi Barang'];
+          
+          if (nama) {
+            try {
+              await clientAddInventaris({
+                nama: String(nama).trim(),
+                kondisi: (kondisi && ['Baik', 'Rusak Ringan', 'Rusak Berat'].includes(kondisi)) ? kondisi : 'Baik',
+                lokasi: lokasi ? String(lokasi).trim() : '',
+                kategori: 'Lainnya',
+                status: 'Tersedia',
+                jumlah: 1
+              });
+              successCount++;
+            } catch (err) {
+              errorCount++;
+            }
+          }
+        }
+        
+        fetchItemsAndCategories();
+        
+        Swal.fire({
+          icon: 'success',
+          title: 'Import Selesai',
+          text: `Berhasil import ${successCount} data. ${errorCount > 0 ? `(${errorCount} gagal)` : ''}`,
+          background: '#111827',
+          color: '#fff'
+        });
+      } catch (err) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Gagal Import',
+          text: 'Pastikan file Excel sesuai dengan template',
+          background: '#111827',
+          color: '#fff'
+        });
+      }
+    };
+    reader.readAsBinaryString(file);
+    e.target.value = ''; // reset input
+  };
+
   const filteredItems = items.filter(i => i.nama.toLowerCase().includes(search.toLowerCase()));
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start xl:items-center gap-4">
         <div>
           <h2 className="text-2xl font-bold dark:text-white flex items-center gap-2">
             <PackageSearch className="text-blue-500 animate-pulse" /> Manajemen Inventaris
@@ -564,16 +667,36 @@ export default function Inventaris() {
           <p className="text-gray-500 dark:text-gray-400 mt-1">Kelola data barang sekretariat OSIM</p>
         </div>
         
-        <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+        <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto">
           <button onClick={handleExportExcel} className="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-lg shadow-emerald-500/30 font-medium text-sm">
-             <FileSpreadsheet size={18} /> Export Excel
+             <FileSpreadsheet size={18} /> Export CSV
           </button>
+          
+          <button onClick={handleDownloadTemplate} className="bg-amber-600 hover:bg-amber-500 text-white px-4 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-lg shadow-amber-500/30 font-medium text-sm">
+             <Download size={18} /> Template Excel
+          </button>
+          
+          {user?.role === 'admin' && (
+            <>
+              <input 
+                type="file" 
+                accept=".xlsx, .xls, .csv" 
+                className="hidden" 
+                ref={fileInputRef} 
+                onChange={handleImport} 
+              />
+              <button onClick={() => fileInputRef.current?.click()} className="bg-purple-600 hover:bg-purple-500 text-white px-4 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-lg shadow-purple-500/30 font-medium text-sm">
+                 <Upload size={18} /> Import Data
+              </button>
+            </>
+          )}
+
           <button onClick={handlePrintPDF} className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-lg shadow-blue-500/30 font-medium text-sm">
-             <Printer size={18} /> Cetak Laporan
+             <Printer size={18} /> Cetak
           </button>
           {user?.role === 'admin' && (
             <button onClick={handleAdd} className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white px-4 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-lg shadow-blue-500/30 font-medium text-sm">
-               <Plus size={18} /> Tambah Barang
+               <Plus size={18} /> Tambah
             </button>
           )}
         </div>
@@ -606,6 +729,7 @@ export default function Inventaris() {
                         <th className="px-6 py-4">KATEGORI</th>
                         <th className="px-6 py-4">JUMLAH</th>
                         <th className="px-6 py-4">KONDISI</th>
+                        <th className="px-6 py-4">LOKASI</th>
                         <th className="px-6 py-4">STATUS</th>
                         {user?.role === 'admin' && <th className="px-6 py-4 text-center">AKSI</th>}
                     </tr>
@@ -613,14 +737,14 @@ export default function Inventaris() {
                 <tbody className="divide-y divide-gray-200 dark:divide-gray-800 font-medium">
                     {loading ? (
                         <tr>
-                          <td colSpan={user?.role === 'admin' ? 6 : 5} className="p-12 text-center text-gray-500">
+                          <td colSpan={user?.role === 'admin' ? 7 : 6} className="p-12 text-center text-gray-500">
                             <div className="inline-block w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mb-2"></div>
                             <p>Membuat data barang...</p>
                           </td>
                         </tr>
                     ) : filteredItems.length === 0 ? (
                         <tr>
-                          <td colSpan={user?.role === 'admin' ? 6 : 5} className="p-12 text-center text-gray-500">
+                          <td colSpan={user?.role === 'admin' ? 7 : 6} className="p-12 text-center text-gray-500">
                             Tidak ada data inventaris ditemukan.
                           </td>
                         </tr>
@@ -643,6 +767,9 @@ export default function Inventaris() {
                                 }`}>
                                     {item.kondisi}
                                 </span>
+                            </td>
+                            <td className="px-6 py-4 dark:text-gray-300">
+                                {item.lokasi || '-'}
                             </td>
                             <td className="px-6 py-4">
                                 <span className={`px-3.5 py-1.5 rounded-xl text-xs border ${
