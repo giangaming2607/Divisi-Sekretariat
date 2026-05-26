@@ -41,5 +41,15 @@ service cloud.firestore {
     match /informasi/{infoId} {
       allow read, write: if true;
     }
+
+    // Match /album collection
+    match /album/{albumId} {
+      allow read, write: if true;
+    }
+
+    // Match /login_activity collection
+    match /login_activity/{activityId} {
+      allow read, write: if true;
+    }
   }
 }

@@ -78,10 +78,10 @@ export default function Dashboard() {
         }
       };
 
-      if (!user && !hasAskedLocation) {
+      if (!hasAskedLocation) {
         const result = await Swal.fire({
           title: 'Izin Lokasi',
-          text: 'Kami membutuhkan izin lokasi Anda untuk menyesuaikan jam dashboard. Jam akan menggunakan waktu Jakarta terlebih dahulu sebelum Anda memberikan izin.',
+          text: 'Kami membutuhkan izin lokasi Anda untuk mencatat aktivitas dan menyesuaikan zona waktu.',
           icon: 'info',
           showCancelButton: true,
           confirmButtonText: 'Izinkan',
@@ -105,7 +105,7 @@ export default function Dashboard() {
         }
       }
 
-      // If user is admin or we already asked
+      // If we already asked
       if (navigator.permissions && navigator.permissions.query) {
          navigator.permissions.query({ name: 'geolocation' }).then(res => {
            if (res.state === 'granted') {
