@@ -699,13 +699,15 @@ export default function Piket() {
                         </div>
 
                         <div className="flex gap-1.5 mt-2.5 pt-2 border-t border-gray-100 dark:border-gray-850/60 justify-end">
-                          <button 
-                            onClick={() => sendReminder(piket)} 
-                            className="p-1.5 bg-blue-500/10 hover:bg-blue-500/20 text-blue-500 dark:text-blue-400 rounded-lg transition-colors" 
-                            title="Kirim Reminder WA"
-                          >
-                            <Bell size={12} />
-                          </button>
+                          {user?.role === 'admin' && (
+                            <button 
+                              onClick={() => sendReminder(piket)} 
+                              className="p-1.5 bg-blue-500/10 hover:bg-blue-500/20 text-blue-500 dark:text-blue-400 rounded-lg transition-colors" 
+                              title="Kirim Reminder WA"
+                            >
+                              <Bell size={12} />
+                            </button>
+                          )}
                           {user?.role === 'admin' && (
                             <button 
                               onClick={() => handleDelete(piket.id)} 
