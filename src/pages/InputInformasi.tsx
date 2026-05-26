@@ -172,7 +172,7 @@ export default function InputInformasi() {
             <div key={item.id} className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-5 shadow-sm group">
                <div className="flex justify-between items-start mb-3 gap-2">
                  <h3 className="font-bold text-gray-900 dark:text-white line-clamp-2">{item.judul}</h3>
-                 <div className="flex gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                 <div className="flex gap-1 shrink-0 transition-opacity">
                     <button onClick={() => handleEdit(item)} className="p-1.5 bg-blue-500/10 text-blue-500 rounded hover:bg-blue-500/20"><Edit size={14} /></button>
                     <button onClick={() => handleDelete(item.id)} className="p-1.5 bg-red-500/10 text-red-500 rounded hover:bg-red-500/20"><Trash2 size={14} /></button>
                  </div>
