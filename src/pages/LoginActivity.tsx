@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { clientGetLoginActivities, LoginActivity } from '../lib/firebaseClient';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
-import { Activity, MapPin, MonitorSmartphone, Clock } from 'lucide-react';
+import { Activity, MapPin, MonitorSmartphone, Clock, RefreshCw } from 'lucide-react';
 
 export default function LoginActivities() {
   const [activities, setActivities] = useState<LoginActivity[]>([]);
@@ -30,13 +30,21 @@ export default function LoginActivities() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center bg-gray-900/50 p-6 rounded-2xl border border-gray-800">
+      <div className="flex justify-between items-center bg-gray-900/50 p-6 rounded-2xl border border-gray-800 flex-wrap gap-4">
         <div>
           <h2 className="text-2xl font-bold text-white flex items-center gap-3">
             <Activity className="text-blue-500" /> Aktivitas Login
           </h2>
           <p className="text-gray-400 mt-1">Pantau lokasi dan waktu akses aplikasi, baik user maupun viewer.</p>
         </div>
+        <button 
+          onClick={fetchActivities}
+          disabled={loading}
+          className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-xl transition-colors font-medium"
+        >
+          <RefreshCw size={18} className={loading ? "animate-spin" : ""} />
+          Refresh Data
+        </button>
       </div>
 
       <div className="bg-gray-900/50 rounded-2xl border border-gray-800 p-6 overflow-hidden">

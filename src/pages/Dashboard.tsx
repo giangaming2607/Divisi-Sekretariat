@@ -53,12 +53,13 @@ export default function Dashboard() {
 
   useEffect(() => {
     const askAndRecordActivity = async () => {
-      const sessionRecorded = sessionStorage.getItem('login_activity_recorded');
+      const sessionKey = `login_activity_recorded_${user ? user.username : 'viewer'}`;
+      const sessionRecorded = sessionStorage.getItem(sessionKey);
       const hasAskedLocation = localStorage.getItem('has_asked_location_v2');
 
       const record = async (lat: number | null, lng: number | null) => {
         if (!sessionRecorded) {
-          sessionStorage.setItem('login_activity_recorded', 'true');
+          sessionStorage.setItem(sessionKey, 'true');
           try {
             // Import dynamically or ensure clientRecordLogin is available
             const { clientRecordLogin } = await import('../lib/firebaseClient');
