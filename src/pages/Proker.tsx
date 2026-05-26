@@ -63,8 +63,8 @@ export default function Proker() {
           </div>
         </div>
       `,
-      background: '#111827',
-      color: '#fff',
+      
+      
       confirmButtonColor: '#9333ea',
       confirmButtonText: 'Tutup Detail',
     });
@@ -108,8 +108,8 @@ export default function Proker() {
         </div>
       `,
       focusConfirm: false,
-      background: '#111827',
-      color: '#fff',
+      
+      
       confirmButtonColor: '#9333ea',
       showCancelButton: true,
       cancelButtonText: 'Batal',
@@ -136,8 +136,8 @@ export default function Proker() {
             icon: 'success',
             title: 'Berhasil!',
             text: 'Program Kerja baru telah ditambahkan.',
-            background: '#111827',
-            color: '#fff',
+            
+            
             confirmButtonColor: '#9333ea'
           });
           fetchItems();
@@ -146,8 +146,8 @@ export default function Proker() {
             icon: 'error',
             title: 'Gagal',
             text: err.message || 'Gagal menyimpan data',
-            background: '#111827',
-            color: '#fff',
+            
+            
             confirmButtonColor: '#ef4444'
           });
         }
@@ -229,8 +229,8 @@ export default function Proker() {
                                       cancelButtonColor: '#3085d6',
                                       confirmButtonText: 'Ya, hapus!',
                                       cancelButtonText: 'Batal',
-                                      background: '#111827',
-                                      color: '#fff'
+                                      
+                                      
                                    }).then(async (result) => {
                                       if (result.isConfirmed) {
                                           await clientDeleteProker(item.id);
@@ -239,8 +239,8 @@ export default function Proker() {
                                              title: 'Dihapus!',
                                              text: 'Program Kerja berhasil dihapus.',
                                              icon: 'success',
-                                             background: '#111827',
-                                             color: '#fff',
+                                             
+                                             
                                              confirmButtonColor: '#9333ea'
                                           });
                                       }

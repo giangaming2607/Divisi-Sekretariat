@@ -36,14 +36,14 @@ export default function Settings() {
           
           Swal.fire({
               toast: true, position: 'top-end', showConfirmButton: false, timer: 3000,
-              icon: 'success', title: 'Pengaturan disimpan', background: '#1f2937', color: '#fff'
+              icon: 'success', title: 'Pengaturan disimpan', background: '#1f2937', 
           });
       } catch (err: any) {
           Swal.fire({
               icon: 'error',
               title: 'Gagal Menyimpan',
               text: err.message || 'Terjadi kesalahan sistem',
-              background: '#1f2937', color: '#fff'
+              background: '#1f2937', 
           });
       }
   }

@@ -65,8 +65,8 @@ export default function WaBot() {
             </ol>
           </div>
         `,
-        background: '#111827',
-        color: '#fff',
+        
+        
         confirmButtonColor: '#3b82f6',
         confirmButtonText: 'Saya Mengerti'
       });
@@ -80,8 +80,8 @@ export default function WaBot() {
       didOpen: () => {
         Swal.showLoading();
       },
-      background: '#111827',
-      color: '#fff'
+      
+      
     });
 
     try {
@@ -93,8 +93,8 @@ export default function WaBot() {
         title: 'Bot Dimulai!',
         text: 'Proses aktivasi WA Bot berhasil dipicu. Silakan scan QR code jika status berubah menjadi Scan QR.',
         confirmButtonColor: '#3b82f6',
-        background: '#111827',
-        color: '#fff'
+        
+        
       });
     } catch (err: any) {
       Swal.close();
@@ -103,8 +103,8 @@ export default function WaBot() {
         title: 'Gagal Membuat Sesi',
         text: err.message || 'Gagal menghubungi server backend WhatsApp.',
         confirmButtonColor: '#ef4444',
-        background: '#111827',
-        color: '#fff'
+        
+        
       });
     }
   };
@@ -120,8 +120,8 @@ export default function WaBot() {
             <p>Pada mode ini, pengiriman manual langsung diarahkan oleh browser Anda ke WhatsApp Web/App, sehingga tidak ada bot background di server yang perlu dimatikan.</p>
           </div>
         `,
-        background: '#111827',
-        color: '#fff',
+        
+        
         confirmButtonColor: '#3b82f6',
         confirmButtonText: 'Tutup'
       });
@@ -135,8 +135,8 @@ export default function WaBot() {
       didOpen: () => {
         Swal.showLoading();
       },
-      background: '#111827',
-      color: '#fff'
+      
+      
     });
 
     try {
@@ -148,8 +148,8 @@ export default function WaBot() {
         title: 'Sukses Disconnect',
         text: 'Sesi bot WhatsApp berhasil dinonaktifkan.',
         confirmButtonColor: '#3b82f6',
-        background: '#111827',
-        color: '#fff'
+        
+        
       });
     } catch (err: any) {
       Swal.close();
@@ -158,8 +158,8 @@ export default function WaBot() {
         title: 'Gagal Mematikan Sesi',
         text: err.message || 'Terjadi kesalahan sistem.',
         confirmButtonColor: '#ef4444',
-        background: '#111827',
-        color: '#fff'
+        
+        
       });
     }
   };

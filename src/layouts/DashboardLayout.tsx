@@ -1,19 +1,31 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { useAuthStore, useThemeStore } from '@/src/lib/store';
+import { clientGetRenovasiSettings, RenovasiSettings } from '@/src/lib/firebaseClient';
 import { 
   Menu, X, LayoutDashboard, Package, CalendarDays, 
-  Target, Bot, LogOut, Settings, Sun, Moon, Users, Tags, MessageSquare, LogIn
+  Target, Bot, LogOut, Settings, Sun, Moon, Users, Tags, MessageSquare, LogIn, Camera, Hammer
 } from 'lucide-react';
 import { cn } from '@/src/lib/utils';
 import Swal from 'sweetalert2';
 
 export default function Layout() {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
+  const [renovasiSettings, setRenovasiSettings] = useState<RenovasiSettings>({});
   const { user, setUser } = useAuthStore();
   const { theme, toggleTheme } = useThemeStore();
   const navigate = useNavigate();
   const location = useLocation();
+
+  useEffect(() => {
+    const fetchRenovasi = async () => {
+      const data = await clientGetRenovasiSettings();
+      setRenovasiSettings(data);
+    };
+    fetchRenovasi();
+    
+    // Set up an interval or just fetch on location change
+  }, [location.pathname]);
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark');
@@ -37,10 +49,12 @@ export default function Layout() {
     { label: 'Input Informasi', path: '/informasi', icon: MessageSquare, adminOnly: true },
     { label: 'Inventaris', path: '/inventaris', icon: Package },
     { label: 'Jadwal Piket', path: '/piket', icon: CalendarDays },
+    { label: 'Album Kenangan', path: '/album', icon: Camera },
     { label: 'Program Kerja', path: '/proker', icon: Target, adminOnly: true },
     { label: 'Kelola User', path: '/users', icon: Users, adminOnly: true },
     { label: 'Kelola Kategori', path: '/categories', icon: Tags, adminOnly: true },
     { label: 'Bot WhatsApp', path: '/wa-bot', icon: Bot, adminOnly: true },
+    { label: 'Renovasi Menu', path: '/renovasi', icon: Hammer, adminOnly: true },
     { label: 'Pengaturan', path: '/settings', icon: Settings, adminOnly: true },
   ];
 
@@ -181,8 +195,26 @@ export default function Layout() {
         {/* Page Content */}
         <div className="flex-1 overflow-x-hidden overflow-y-auto p-4 sm:p-6 pb-24 lg:pb-6 relative flex flex-col">
              <div className="max-w-7xl mx-auto w-full relative z-10 flex-1">
-                <Outlet />
+                {user?.role !== 'admin' && renovasiSettings[location.pathname] ? (
+                  <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
+                    <div className="w-24 h-24 bg-yellow-500/10 rounded-full flex items-center justify-center mb-6">
+                      <Hammer size={48} className="text-yellow-500" />
+                    </div>
+                    <h2 className="text-2xl font-bold mb-4">Sedang Dalam Perbaikan</h2>
+                    <p className="text-gray-500 max-w-md mx-auto leading-relaxed">
+                      Menu ini dalam pengembangan mohon menunggu jika masih begini hingga 3 hari maka hubungi admin
+                    </p>
+                  </div>
+                ) : (
+                  <Outlet />
+                )}
              </div>
+
+             {user?.role === 'admin' && renovasiSettings[location.pathname] && (
+               <div className="fixed bottom-24 lg:bottom-6 right-6 bg-yellow-500 text-yellow-950 px-4 py-2 rounded-full shadow-lg font-medium text-sm flex items-center gap-2 z-50 animate-pulse">
+                 <Hammer size={16} /> Sedang Direnovasi (Viewer disembunyikan)
+               </div>
+             )}
              
              {/* Footer */}
              <footer className="w-full text-center mt-12 mb-4 z-10">

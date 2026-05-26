@@ -47,8 +47,8 @@ export default function InputInformasi() {
       focusConfirm: false,
       showCancelButton: true,
       confirmButtonText: 'Simpan',
-      background: '#111827',
-      color: '#fff',
+      
+      
       preConfirm: () => {
         const judul = (document.getElementById('swal-judul') as HTMLInputElement).value;
         const konten = (document.getElementById('swal-konten') as HTMLTextAreaElement).value;
@@ -66,7 +66,7 @@ export default function InputInformasi() {
           konten: formValues.konten,
           tanggal: new Date().toISOString()
         });
-        Swal.fire({ title: 'Berhasil', text: 'Informasi berhasil ditambahkan', icon: 'success', background: '#111827', color: '#fff' });
+        Swal.fire({ title: 'Berhasil', text: 'Informasi berhasil ditambahkan', icon: 'success',   });
         fetchInformasi();
       } catch (err) {
         Swal.fire('Error', 'Gagal menambahkan informasi', 'error');
@@ -89,8 +89,8 @@ export default function InputInformasi() {
       focusConfirm: false,
       showCancelButton: true,
       confirmButtonText: 'Simpan Perubahan',
-      background: '#111827',
-      color: '#fff',
+      
+      
       preConfirm: () => {
         const judul = (document.getElementById('swal-judul') as HTMLInputElement).value;
         const konten = (document.getElementById('swal-konten') as HTMLTextAreaElement).value;
@@ -107,7 +107,7 @@ export default function InputInformasi() {
           judul: formValues.judul,
           konten: formValues.konten
         });
-        Swal.fire({ title: 'Berhasil', text: 'Informasi berhasil diupdate', icon: 'success', background: '#111827', color: '#fff' });
+        Swal.fire({ title: 'Berhasil', text: 'Informasi berhasil diupdate', icon: 'success',   });
         fetchInformasi();
       } catch (err) {
         Swal.fire('Error', 'Gagal mengupdate informasi', 'error');
@@ -124,13 +124,13 @@ export default function InputInformasi() {
       confirmButtonColor: '#ef4444',
       cancelButtonColor: '#3b82f6',
       confirmButtonText: 'Ya, hapus!',
-      background: '#111827',
-      color: '#fff'
+      
+      
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
           await clientDeleteInformasi(id);
-          Swal.fire({ title: 'Terhapus!', text: 'Informasi telah dihapus.', icon: 'success', background: '#111827', color: '#fff' });
+          Swal.fire({ title: 'Terhapus!', text: 'Informasi telah dihapus.', icon: 'success',   });
           fetchInformasi();
         } catch (err) {
           Swal.fire('Error', 'Gagal menghapus informasi', 'error');

@@ -38,6 +38,18 @@ export default function Dashboard() {
   const [inventarisTerbaru, setInventarisTerbaru] = useState<InventarisItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
+  const showFullInfo = (info: InfoItem) => {
+    Swal.fire({
+      title: info.judul,
+      html: `<div class="text-left text-sm whitespace-pre-wrap mt-4 text-gray-800 dark:text-gray-200">${info.konten}</div>`,
+      confirmButtonText: 'Tutup',
+      confirmButtonColor: '#3b82f6',
+      customClass: {
+        popup: 'rounded-2xl',
+      }
+    });
+  };
+
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
@@ -124,8 +136,8 @@ export default function Dashboard() {
           </div>
         </div>
       `,
-      background: '#111827',
-      color: '#fff',
+      
+      
       confirmButtonColor: '#9333ea',
       confirmButtonText: 'Tutup Detail',
     });
@@ -170,6 +182,12 @@ export default function Dashboard() {
                   </span>
                 </div>
                 <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-3 leading-relaxed whitespace-pre-wrap">{info.konten}</p>
+                <button 
+                  onClick={() => showFullInfo(info)}
+                  className="mt-2 text-[11px] sm:text-xs text-blue-500 hover:text-blue-600 dark:hover:text-blue-400 font-semibold transition-colors flex items-center gap-1"
+                >
+                  Lihat Selengkapnya &rarr;
+                </button>
               </div>
             ))}
           </div>
@@ -214,12 +232,12 @@ export default function Dashboard() {
             ) : (
               <div className="space-y-3 overflow-y-auto max-h-48 pr-2">
                 {piketToday.map((item) => (
-                  <div key={item.id} className="flex justify-between items-center bg-gray-100 dark:bg-gray-850 p-4 rounded-xl border border-gray-200 dark:border-gray-850">
+                  <div key={item.id} className="flex justify-between items-center bg-gray-100 dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700">
                     <div>
-                      <h4 className="font-bold text-sm dark:text-white">{item.nama}</h4>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">Jam: {item.jam} — Tugas: {item.tugas}</p>
+                      <h4 className="font-bold text-sm text-gray-900 dark:text-white">{item.nama}</h4>
+                      <p className="text-xs text-gray-600 dark:text-gray-400">Jam: {item.jam} — Tugas: {item.tugas}</p>
                     </div>
-                    <span className="text-xs px-2.5 py-1 bg-emerald-500/10 text-emerald-400 font-medium rounded-full">
+                    <span className="text-xs px-2.5 py-1 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-medium rounded-full">
                       Piket Aktif
                     </span>
                   </div>
@@ -247,13 +265,13 @@ export default function Dashboard() {
                   <div 
                     key={item.id} 
                     onClick={() => handleShowProkerDetail(item)}
-                    className="flex justify-between items-center bg-gray-100 dark:bg-gray-850 p-4 rounded-xl border border-gray-200 dark:border-gray-850 hover:border-purple-500/40 cursor-pointer transition-all duration-200 hover:scale-[1.01]"
+                    className="flex justify-between items-center bg-gray-100 dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-purple-500/40 cursor-pointer transition-all duration-200 hover:scale-[1.01]"
                   >
                     <div>
-                      <h4 className="font-bold text-sm dark:text-white">{item.nama}</h4>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">Penanggung Jawab: {item.pj}</p>
+                      <h4 className="font-bold text-sm text-gray-900 dark:text-white">{item.nama}</h4>
+                      <p className="text-xs text-gray-600 dark:text-gray-400">Penanggung Jawab: {item.pj}</p>
                     </div>
-                    <span className="text-xs px-2.5 py-1 bg-purple-500/10 text-purple-400 font-medium rounded-full">
+                    <span className="text-xs px-2.5 py-1 bg-purple-500/10 text-purple-600 dark:text-purple-400 font-medium rounded-full">
                       Berjalan
                     </span>
                   </div>

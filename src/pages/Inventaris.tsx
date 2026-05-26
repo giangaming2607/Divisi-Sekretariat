@@ -58,8 +58,8 @@ export default function Inventaris() {
         icon: 'error',
         title: 'Akses Ditolak',
         text: 'Hanya Admin yang dapat menghapus inventaris!',
-        background: '#111827',
-        color: '#fff',
+        
+        
         confirmButtonColor: '#ef4444'
       });
       return;
@@ -74,8 +74,8 @@ export default function Inventaris() {
       cancelButtonColor: '#3b82f6',
       confirmButtonText: 'Ya, hapus!',
       cancelButtonText: 'Batal',
-      background: '#111827',
-      color: '#fff',
+      
+      
     }).then(async (result) => {
       if (result.isConfirmed) {
         await clientDeleteInventaris(id);
@@ -83,8 +83,8 @@ export default function Inventaris() {
           icon: 'success',
           title: 'Terhapus!',
           text: 'Data berhasil dihapus.',
-          background: '#111827',
-          color: '#fff',
+          
+          
           confirmButtonColor: '#3b82f6'
         });
         fetchItemsAndCategories();
@@ -98,8 +98,8 @@ export default function Inventaris() {
         icon: 'error',
         title: 'Akses Ditolak',
         text: 'Hanya Admin yang dapat mengubah inventaris!',
-        background: '#111827',
-        color: '#fff',
+        
+        
         confirmButtonColor: '#ef4444'
       });
       return;
@@ -159,8 +159,8 @@ export default function Inventaris() {
           </div>
         `,
         focusConfirm: false,
-        background: '#111827',
-        color: '#fff',
+        
+        
         confirmButtonColor: '#3b82f6',
         showCancelButton: true,
         cancelButtonText: 'Batal',
@@ -195,8 +195,8 @@ export default function Inventaris() {
                     title: 'Berhasil!',
                     text: 'Data inventaris berhasil diperbarui.',
                     confirmButtonColor: '#3b82f6',
-                    background: '#111827',
-                    color: '#fff'
+                    
+                    
                 });
                 fetchItemsAndCategories();
             } catch (err: any) {
@@ -204,8 +204,8 @@ export default function Inventaris() {
                     icon: 'error',
                     title: 'Gagal',
                     text: err.message || 'Gagal menyimpan perubahan',
-                    background: '#111827',
-                    color: '#fff',
+                    
+                    
                     confirmButtonColor: '#ef4444'
                 });
             }
@@ -219,8 +219,8 @@ export default function Inventaris() {
         icon: 'error',
         title: 'Akses Ditolak',
         text: 'Hanya Admin yang dapat menambahkan inventaris!',
-        background: '#111827',
-        color: '#fff',
+        
+        
         confirmButtonColor: '#ef4444'
       });
       return;
@@ -280,8 +280,8 @@ export default function Inventaris() {
           </div>
         `,
         focusConfirm: false,
-        background: '#111827',
-        color: '#fff',
+        
+        
         confirmButtonColor: '#3b82f6',
         showCancelButton: true,
         cancelButtonText: 'Batal',
@@ -316,8 +316,8 @@ export default function Inventaris() {
                     title: 'Berhasil!',
                     text: 'Data inventaris baru berhasil disimpan.',
                     confirmButtonColor: '#3b82f6',
-                    background: '#111827',
-                    color: '#fff'
+                    
+                    
                 });
                 fetchItemsAndCategories();
             } catch (err: any) {
@@ -325,8 +325,8 @@ export default function Inventaris() {
                     icon: 'error',
                     title: 'Gagal',
                     text: err.message || 'Gagal menyimpan data',
-                    background: '#111827',
-                    color: '#fff',
+                    
+                    
                     confirmButtonColor: '#ef4444'
                 });
             }
@@ -340,8 +340,8 @@ export default function Inventaris() {
         icon: 'warning',
         title: 'Data Kosong',
         text: 'Tidak ada data inventaris untuk dicetak!',
-        background: '#111827',
-        color: '#fff',
+        
+        
         confirmButtonColor: '#3b82f6'
       });
       return;
@@ -353,8 +353,8 @@ export default function Inventaris() {
         icon: 'error',
         title: 'Pop-Up Terblokir',
         text: 'Harap izinkan pop-up di browser Anda untuk mencetak laporan.',
-        background: '#111827',
-        color: '#fff',
+        
+        
         confirmButtonColor: '#ef4444'
       });
       return;
@@ -531,8 +531,8 @@ export default function Inventaris() {
         icon: 'warning',
         title: 'Data Kosong',
         text: 'Tidak ada data inventaris untuk diexport!',
-        background: '#111827',
-        color: '#fff',
+        
+        
         confirmButtonColor: '#3b82f6'
       });
       return;
@@ -579,8 +579,8 @@ export default function Inventaris() {
       icon: 'success',
       title: 'Berhasil!',
       text: 'File Excel (CSV) berhasil digenerate dan diunduh.',
-      background: '#111827',
-      color: '#fff',
+      
+      
       confirmButtonColor: '#10b981'
     });
   };
@@ -606,8 +606,8 @@ export default function Inventaris() {
         icon: 'error',
         title: 'Akses Ditolak',
         text: 'Hanya Admin yang dapat mengimport inventaris!',
-        background: '#111827',
-        color: '#fff',
+        
+        
         confirmButtonColor: '#ef4444'
       });
       return;
@@ -654,16 +654,16 @@ export default function Inventaris() {
           icon: 'success',
           title: 'Import Selesai',
           text: `Berhasil import ${successCount} data. ${errorCount > 0 ? `(${errorCount} gagal)` : ''}`,
-          background: '#111827',
-          color: '#fff'
+          
+          
         });
       } catch (err) {
         Swal.fire({
           icon: 'error',
           title: 'Gagal Import',
           text: 'Pastikan file Excel sesuai dengan template',
-          background: '#111827',
-          color: '#fff'
+          
+          
         });
       }
     };

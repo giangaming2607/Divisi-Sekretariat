@@ -58,8 +58,8 @@ export default function Piket() {
         icon: 'error',
         title: 'Akses Ditolak',
         text: 'Hanya Admin yang dapat menjadwalkan piket!',
-        background: '#111827',
-        color: '#fff',
+        
+        
         confirmButtonColor: '#ef4444'
       });
       return;
@@ -117,8 +117,8 @@ export default function Piket() {
         </div>
       `,
       focusConfirm: false,
-      background: '#111827',
-      color: '#fff',
+      
+      
       confirmButtonColor: '#10b981',
       confirmButtonText: 'Simpan Roster',
       showCancelButton: true,
@@ -180,8 +180,8 @@ export default function Piket() {
             title: 'Berhasil!',
             text: `Roster piket harian disimpan (${selectedMembers.length} anggota).`,
             confirmButtonColor: '#10b981',
-            background: '#111827',
-            color: '#fff'
+            
+            
           });
           fetchItems();
         } catch (err: any) {
@@ -190,8 +190,8 @@ export default function Piket() {
             title: 'Gagal',
             text: err.message || 'Gagal menyimpan roster',
             confirmButtonColor: '#ef4444',
-            background: '#111827',
-            color: '#fff'
+            
+            
           });
         }
       }
@@ -204,8 +204,8 @@ export default function Piket() {
         icon: 'error',
         title: 'Akses Ditolak',
         text: 'Hanya Admin yang dapat menghapus roster!',
-        background: '#111827',
-        color: '#fff',
+        
+        
         confirmButtonColor: '#ef4444'
       });
       return;
@@ -220,8 +220,8 @@ export default function Piket() {
       cancelButtonColor: '#3b82f6',
       confirmButtonText: 'Ya, hapus!',
       cancelButtonText: 'Batal',
-      background: '#111827',
-      color: '#fff',
+      
+      
     }).then(async (result) => {
       if (result.isConfirmed) {
         await clientDeletePiket(id);
@@ -229,8 +229,8 @@ export default function Piket() {
           icon: 'success',
           title: 'Terhapus!',
           text: 'Roster berhasil dihapus.',
-          background: '#111827',
-          color: '#fff',
+          
+          
           confirmButtonColor: '#10b981'
         });
         fetchItems();
@@ -244,8 +244,8 @@ export default function Piket() {
         icon: 'warning',
         title: 'Kontak Kosong',
         text: `Anggota ${item.nama} belum memiliki nomor WhatsApp terdaftar.`,
-        background: '#111827',
-        color: '#fff',
+        
+        
         confirmButtonColor: '#f59e0b'
       });
       return;
@@ -272,8 +272,8 @@ export default function Piket() {
       cancelButtonColor: '#3b82f6',
       confirmButtonText: 'Kirim Sekarang',
       cancelButtonText: 'Batal',
-      background: '#111827',
-      color: '#fff',
+      
+      
       preConfirm: () => {
         const textarea = document.getElementById('swal-message-input') as HTMLTextAreaElement;
         const value = textarea ? textarea.value.trim() : '';
@@ -306,8 +306,8 @@ export default function Piket() {
                 title: 'Terkirim',
                 text: 'Pesan berhasil dikirim via WhatsApp API Bot!',
                 confirmButtonColor: '#10b981',
-                background: '#111827',
-                color: '#fff'
+                
+                
               });
               return;
             }
@@ -324,8 +324,8 @@ export default function Piket() {
           title: 'Reminder Dialihkan (Mode Browser)',
           text: 'Mengalihkan ke WhatsApp Web atau aplikasi Anda secara langsung karena server offline atau dideploy di Vercel.',
           icon: 'info',
-          background: '#111827',
-          color: '#fff',
+          
+          
           confirmButtonColor: '#3b82f6'
         });
       }
@@ -338,8 +338,8 @@ export default function Piket() {
         icon: 'warning',
         title: 'Data Kosong',
         text: 'Tidak ada data roster piket untuk diexport!',
-        background: '#111827',
-        color: '#fff',
+        
+        
         confirmButtonColor: '#3b82f6'
       });
       return;
@@ -392,8 +392,8 @@ export default function Piket() {
       icon: 'success',
       title: 'Berhasil!',
       text: 'File Excel (CSV) roster piket mingguan berhasil diunduh.',
-      background: '#111827',
-      color: '#fff',
+      
+      
       confirmButtonColor: '#10b981'
     });
   };
@@ -404,8 +404,8 @@ export default function Piket() {
         icon: 'warning',
         title: 'Data Kosong',
         text: 'Tidak ada data roster piket untuk dicetak!',
-        background: '#111827',
-        color: '#fff',
+        
+        
         confirmButtonColor: '#3b82f6'
       });
       return;
@@ -417,8 +417,8 @@ export default function Piket() {
         icon: 'error',
         title: 'Pop-Up Terblokir',
         text: 'Harap izinkan pop-up di browser Anda untuk mencetak roster.',
-        background: '#111827',
-        color: '#fff',
+        
+        
         confirmButtonColor: '#ef4444'
       });
       return;

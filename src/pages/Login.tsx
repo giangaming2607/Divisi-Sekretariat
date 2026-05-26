@@ -46,7 +46,7 @@ export default function Login() {
           timer: 3000,
           timerProgressBar: true,
           background: '#1f2937',
-          color: '#fff'
+          
       });
       Toast.fire({ icon: "success", title: "Berhasil masuk" });
       navigate('/');
@@ -56,7 +56,7 @@ export default function Login() {
         title: 'Akses Ditolak',
         text: err.message || 'Username atau password salah',
         background: '#1f2937',
-        color: '#fff',
+        
         confirmButtonColor: '#3b82f6'
       });
     } finally {

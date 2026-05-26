@@ -38,8 +38,8 @@ export default function Categories() {
         icon: 'error',
         title: 'Akses Ditolak',
         text: 'Hanya Admin yang dapat menambahkan kategori!',
-        background: '#111827',
-        color: '#fff',
+        
+        
         confirmButtonColor: '#ef4444'
       });
       return;
@@ -56,8 +56,8 @@ export default function Categories() {
         </div>
       `,
       focusConfirm: false,
-      background: '#111827',
-      color: '#fff',
+      
+      
       confirmButtonColor: '#9333ea',
       showCancelButton: true,
       cancelButtonText: 'Batal',
@@ -78,8 +78,8 @@ export default function Categories() {
             icon: 'success',
             title: 'Berhasil!',
             text: 'Kategori baru berhasil ditambahkan.',
-            background: '#111827',
-            color: '#fff',
+            
+            
             confirmButtonColor: '#9333ea'
           });
           fetchCategories();
@@ -88,8 +88,8 @@ export default function Categories() {
             icon: 'error',
             title: 'Gagal',
             text: err.message || 'Gagal menyimpan kategori',
-            background: '#111827',
-            color: '#fff',
+            
+            
             confirmButtonColor: '#ef4444'
           });
         }
@@ -103,8 +103,8 @@ export default function Categories() {
         icon: 'error',
         title: 'Akses Ditolak',
         text: 'Hanya Admin yang dapat mengubah kategori!',
-        background: '#111827',
-        color: '#fff',
+        
+        
         confirmButtonColor: '#ef4444'
       });
       return;
@@ -121,8 +121,8 @@ export default function Categories() {
         </div>
       `,
       focusConfirm: false,
-      background: '#111827',
-      color: '#fff',
+      
+      
       confirmButtonColor: '#9333ea',
       showCancelButton: true,
       cancelButtonText: 'Batal',
@@ -143,8 +143,8 @@ export default function Categories() {
             icon: 'success',
             title: 'Berhasil!',
             text: 'Nama kategori berhasil diubah.',
-            background: '#111827',
-            color: '#fff',
+            
+            
             confirmButtonColor: '#9333ea'
           });
           fetchCategories();
@@ -153,8 +153,8 @@ export default function Categories() {
             icon: 'error',
             title: 'Gagal',
             text: err.message || 'Gagal mengubah kategori',
-            background: '#111827',
-            color: '#fff',
+            
+            
             confirmButtonColor: '#ef4444'
           });
         }
@@ -168,8 +168,8 @@ export default function Categories() {
         icon: 'error',
         title: 'Akses Ditolak',
         text: 'Hanya Admin yang dapat menghapus kategori!',
-        background: '#111827',
-        color: '#fff',
+        
+        
         confirmButtonColor: '#ef4444'
       });
       return;
@@ -184,8 +184,8 @@ export default function Categories() {
       cancelButtonColor: '#3b82f6',
       confirmButtonText: 'Ya, hapus!',
       cancelButtonText: 'Batal',
-      background: '#111827',
-      color: '#fff',
+      
+      
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
@@ -194,8 +194,8 @@ export default function Categories() {
             icon: 'success',
             title: 'Terhapus!',
             text: 'Kategori berhasil dihapus.',
-            background: '#111827',
-            color: '#fff',
+            
+            
             confirmButtonColor: '#3b82f6'
           });
           fetchCategories();
@@ -204,8 +204,8 @@ export default function Categories() {
             icon: 'error',
             title: 'Gagal',
             text: err.message || 'Gagal menghapus kategori',
-            background: '#111827',
-            color: '#fff',
+            
+            
             confirmButtonColor: '#ef4444'
           });
         }

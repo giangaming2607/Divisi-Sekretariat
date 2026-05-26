@@ -28,6 +28,28 @@ select option {
   background-color: #ffffff !important;
 }
 
+/* SweetAlert2 Theme Adjustments */
+html.dark .swal2-popup {
+  background: #111827 !important;
+  color: #ffffff !important;
+}
+html.dark .swal2-title {
+  color: #ffffff !important;
+}
+html.dark .swal2-html-container, html.dark .swal2-content {
+  color: #d1d5db !important;
+}
+html:not(.dark) .swal2-popup {
+  background: #ffffff !important;
+  color: #111827 !important;
+}
+html:not(.dark) .swal2-title {
+  color: #111827 !important;
+}
+html:not(.dark) .swal2-html-container, html:not(.dark) .swal2-content {
+  color: #374151 !important;
+}
+
 /* Custom Sleek Scrollbars */
 .custom-scrollbar::-webkit-scrollbar {
   height: 6px;

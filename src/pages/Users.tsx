@@ -67,8 +67,8 @@ export default function Users() {
         </div>
       `,
       focusConfirm: false,
-      background: '#111827',
-      color: '#fff',
+      
+      
       confirmButtonColor: '#3b82f6',
       confirmButtonText: 'Simpan',
       showCancelButton: true,
@@ -108,8 +108,8 @@ export default function Users() {
             icon: 'success',
             title: 'Berhasil',
             text: 'Pengguna baru berhasil ditambahkan!',
-            background: '#111827',
-            color: '#fff',
+            
+            
             confirmButtonColor: '#3b82f6'
           });
           fetchUsers();
@@ -118,8 +118,8 @@ export default function Users() {
             icon: 'error',
             title: 'Gagal',
             text: err.message || 'Terjadi kesalahan sistem',
-            background: '#111827',
-            color: '#fff',
+            
+            
             confirmButtonColor: '#ef4444'
           });
         }
@@ -159,8 +159,8 @@ export default function Users() {
         </div>
       `,
       focusConfirm: false,
-      background: '#111827',
-      color: '#fff',
+      
+      
       confirmButtonColor: '#3b82f6',
       confirmButtonText: 'Update',
       showCancelButton: true,
@@ -200,8 +200,8 @@ export default function Users() {
             icon: 'success',
             title: 'Diperbarui',
             text: 'Data pengguna berhasil diubah!',
-            background: '#111827',
-            color: '#fff',
+            
+            
             confirmButtonColor: '#3b82f6'
           });
           fetchUsers();
@@ -210,8 +210,8 @@ export default function Users() {
             icon: 'error',
             title: 'Gagal',
             text: err.message || 'Terjadi kesalahan sistem',
-            background: '#111827',
-            color: '#fff',
+            
+            
             confirmButtonColor: '#ef4444'
           });
         }
@@ -225,8 +225,8 @@ export default function Users() {
         icon: 'error',
         title: 'Pembatasan',
         text: 'Akun admin utama tidak bisa dihapus!',
-        background: '#111827',
-        color: '#fff',
+        
+        
         confirmButtonColor: '#ef4444'
       });
       return;
@@ -241,8 +241,8 @@ export default function Users() {
       cancelButtonColor: '#3b82f6',
       confirmButtonText: 'Ya, hapus!',
       cancelButtonText: 'Batal',
-      background: '#111827',
-      color: '#fff',
+      
+      
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
@@ -251,8 +251,8 @@ export default function Users() {
             icon: 'success',
             title: 'Terhapus',
             text: 'Pengguna berhasil dihapus',
-            background: '#111827',
-            color: '#fff',
+            
+            
             confirmButtonColor: '#3b82f6'
           });
           fetchUsers();
@@ -261,8 +261,8 @@ export default function Users() {
             icon: 'error',
             title: 'Gagal',
             text: err.message || 'Gagal menghapus pengguna',
-            background: '#111827',
-            color: '#fff',
+            
+            
             confirmButtonColor: '#ef4444'
           });
         }

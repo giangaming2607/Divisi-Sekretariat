@@ -13,6 +13,8 @@ import Settings from './pages/Settings';
 import Users from './pages/Users';
 import Categories from './pages/Categories';
 import InputInformasi from './pages/InputInformasi';
+import Album from './pages/Album';
+import RenovasiAdmin from './pages/RenovasiAdmin';
 
 const ProtectedRoute = ({ children, adminOnly = false }: { children: React.ReactNode, adminOnly?: boolean }) => {
   const { isAuthenticated, user } = useAuthStore();
@@ -67,6 +69,7 @@ export default function App() {
           <Route index element={<Dashboard />} />
           <Route path="inventaris" element={<Inventaris />} />
           <Route path="piket" element={<Piket />} />
+          <Route path="album" element={<Album />} />
           
           {/* Protected routes */}
           <Route path="informasi" element={<ProtectedRoute adminOnly><InputInformasi /></ProtectedRoute>} />
@@ -74,6 +77,7 @@ export default function App() {
           <Route path="users" element={<ProtectedRoute adminOnly><Users /></ProtectedRoute>} />
           <Route path="categories" element={<ProtectedRoute adminOnly><Categories /></ProtectedRoute>} />
           <Route path="wa-bot" element={<ProtectedRoute adminOnly><WaBot /></ProtectedRoute>} />
+          <Route path="renovasi" element={<ProtectedRoute adminOnly><RenovasiAdmin /></ProtectedRoute>} />
           <Route path="settings" element={<ProtectedRoute adminOnly><Settings /></ProtectedRoute>} />
         </Route>
       </Routes>

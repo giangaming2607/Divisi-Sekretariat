@@ -403,3 +403,78 @@ export async function clientUpdateInformasi(id: number, item: Partial<Omit<InfoI
   const docRef = doc(db, 'informasi', String(id));
   await updateDoc(docRef, item);
 }
+
+/**
+ * ----------------- ALBUM KENANGAN OPERATIONS -----------------
+ */
+
+export interface AlbumItem {
+  id: number;
+  url: string;
+}
+
+export async function clientGetAlbums(): Promise<AlbumItem[]> {
+  const snap = await getDocs(collection(db, 'album'));
+  return snap.docs.map(d => {
+    const data = d.data();
+    return {
+      id: Number(data.id),
+      url: data.url || ''
+    };
+  }).sort((a, b) => b.id - a.id);
+}
+
+export async function clientAddAlbum(item: Omit<AlbumItem, 'id'>): Promise<void> {
+  const id = Date.now();
+  await setDoc(doc(db, 'album', String(id)), {
+    id,
+    ...item
+  });
+}
+
+export async function clientDeleteAlbum(id: number): Promise<void> {
+  await deleteDoc(doc(db, 'album', String(id)));
+}
+
+export interface RenovasiSettings {
+  [key: string]: boolean; // Record of path -> isUnderRenovation
+}
+
+export async function clientGetRenovasiSettings(): Promise<RenovasiSettings> {
+  try {
+    const snap = await getDoc(doc(db, 'settings', 'renovasi_settings'));
+    if (snap.exists()) {
+      return snap.data() as RenovasiSettings;
+    }
+  } catch (err) {
+    console.warn('[Firebase Client] Error loading renovasi settings');
+  }
+  return {};
+}
+
+export async function clientSaveRenovasiSettings(settings: RenovasiSettings): Promise<void> {
+  await setDoc(doc(db, 'settings', 'renovasi_settings'), settings);
+}
+
+export interface AlbumSettings {
+  songUrl: string;
+  title?: string;
+  description?: string;
+  songStartTime?: number;
+}
+
+export async function clientGetAlbumSettings(): Promise<AlbumSettings> {
+  try {
+    const snap = await getDoc(doc(db, 'settings', 'album_settings'));
+    if (snap.exists()) {
+      return snap.data() as AlbumSettings;
+    }
+  } catch (err) {
+    console.warn('[Firebase Client] Error loading album settings, returning defaults');
+  }
+  return { songUrl: '', title: 'Album Kenangan OSIM', description: 'Menyimpan setiap momen berharga, suka duka, dan perjuangan kita bersama di ruang Sekretariat.' };
+}
+
+export async function clientSaveAlbumSettings(settings: AlbumSettings): Promise<void> {
+  await setDoc(doc(db, 'settings', 'album_settings'), settings);
+}
