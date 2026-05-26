@@ -35,6 +35,7 @@ export default function Dashboard() {
   const [piketToday, setPiketToday] = useState<PiketItem[]>([]);
   const [prokersActive, setProkersActive] = useState<ProkerItem[]>([]);
   const [informasiTerbaru, setInformasiTerbaru] = useState<InfoItem[]>([]);
+  const [inventarisTerbaru, setInventarisTerbaru] = useState<InventarisItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
@@ -72,6 +73,9 @@ export default function Dashboard() {
 
         // 4. Set informasi
         setInformasiTerbaru(infos.slice(0, 3));
+
+        // 5. Set inventaris terbaru (top 5) for dashboard viewer 
+        setInventarisTerbaru(inventaris.slice(0, 5));
       } catch (err) {
         console.error('Error fetching dashboard states:', err);
       } finally {
@@ -257,6 +261,77 @@ export default function Dashboard() {
               </div>
             )}
          </div>
+      </div>
+
+      {/* Viewer: Inventaris Table on Dashboard */}
+      <div className="bg-white/5 dark:bg-gray-900/50 backdrop-blur-xl border border-gray-200 dark:border-gray-800 rounded-2xl overflow-hidden mt-6">
+        <div className="p-5 border-b border-gray-200 dark:border-gray-800">
+           <h3 className="text-lg font-semibold dark:text-white flex items-center gap-2">
+             <Package className="text-blue-500" size={20} /> Data Inventaris Terbaru
+           </h3>
+        </div>
+        <div className="overflow-x-auto">
+           <table className="w-full text-left text-sm whitespace-nowrap">
+              <thead className="bg-gray-50 dark:bg-gray-800/40 text-gray-600 dark:text-gray-300 font-semibold">
+                  <tr>
+                      <th className="px-6 py-4">NAMA BARANG</th>
+                      <th className="px-6 py-4">KATEGORI</th>
+                      <th className="px-6 py-4">JUMLAH</th>
+                      <th className="px-6 py-4">KONDISI</th>
+                      <th className="px-6 py-4">LOKASI</th>
+                      <th className="px-6 py-4">STATUS</th>
+                  </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200 dark:divide-gray-800 font-medium">
+                  {loading ? (
+                    <tr>
+                      <td colSpan={6} className="p-8 text-center text-gray-500">
+                         Memuat...
+                      </td>
+                    </tr>
+                  ) : inventarisTerbaru.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="p-8 text-center text-gray-500">
+                         Belum ada barang
+                      </td>
+                    </tr>
+                  ) : inventarisTerbaru.map((item) => (
+                    <tr key={item.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/20 transition-colors">
+                        <td className="px-6 py-4 font-semibold dark:text-white">{item.nama}</td>
+                        <td className="px-6 py-4 dark:text-gray-300">
+                            <span className="px-3.5 py-1.5 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-xl text-xs">{item.kategori}</span>
+                        </td>
+                        <td className="px-6 py-4">
+                            <span className="px-3 py-1 bg-purple-500/10 text-purple-400 border border-purple-500/20 rounded-xl font-mono text-xs">{item.jumlah || 1} {item.satuan || 'Pcs'}</span>
+                        </td>
+                        <td className="px-6 py-4">
+                             <span className={`px-3.5 py-1.5 rounded-xl text-xs border ${
+                                item.kondisi === 'Baik' 
+                                  ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' 
+                                  : item.kondisi === 'Rusak Ringan' 
+                                    ? 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                                    : 'bg-red-500/10 text-red-400 border-red-500/20'
+                            }`}>
+                                {item.kondisi}
+                            </span>
+                        </td>
+                        <td className="px-6 py-4 dark:text-gray-300">
+                            {item.lokasi || '-'}
+                        </td>
+                        <td className="px-6 py-4">
+                             <span className={`px-3.5 py-1.5 rounded-xl text-xs border ${
+                                item.status === 'Tersedia' 
+                                  ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' 
+                                  : 'bg-orange-500/10 text-orange-400 border-orange-500/20'
+                            }`}>
+                                {item.status}
+                            </span>
+                        </td>
+                    </tr>
+                  ))}
+              </tbody>
+           </table>
+        </div>
       </div>
 
     </div>
