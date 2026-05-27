@@ -19,7 +19,7 @@ export default function Album() {
   const [albums, setAlbums] = useState<AlbumItem[]>([]);
   const [settings, setSettings] = useState<AlbumSettings>({ songUrl: '', songStartTime: 0 });
   const [loading, setLoading] = useState(true);
-  const [isPlaying, setIsPlaying] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(true);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [gridSize, setGridSize] = useState<'small' | 'medium' | 'large'>('medium');
   const playerRef = useRef<ReactPlayer>(null);
@@ -73,6 +73,11 @@ export default function Album() {
           <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Deskripsi Album</label>
           <textarea id="swal-desc" class="swal2-textarea !m-0 !w-full bg-gray-900 border border-gray-700 text-white rounded-xl mb-3 text-sm" placeholder="Deskripsi album...">${settings.description || 'Menyimpan setiap momen berharga, suka duka, dan perjuangan kita bersama di ruang Sekretariat.'}</textarea>
 
+          <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Upload Lagu (Audio File)</label>
+          <input type="file" id="swal-song-file" accept="audio/*" class="w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-pink-500/20 file:text-pink-400 hover:file:bg-pink-500/30 mb-2">
+          
+          <div class="text-center text-sm text-gray-500 mb-2 font-bold">- ATAU -</div>
+
           <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">URL Lagu (MP3 / YouTube / Spotify)</label>
           <div class="flex gap-2 items-center mb-4">
             <input id="swal-song-url" value="${settings.songUrl || ''}" class="swal2-input !m-0 !w-full bg-gray-900 border border-gray-700 text-white rounded-xl" placeholder="Link YouTube, Spotify, atau MP3">
@@ -117,11 +122,27 @@ export default function Album() {
            }
         });
       },
-      preConfirm: () => {
+      preConfirm: async () => {
+        const fileInput = document.getElementById('swal-song-file') as HTMLInputElement;
+        let songUrl = (document.getElementById('swal-song-url') as HTMLInputElement).value.trim();
+
+        if (fileInput.files && fileInput.files.length > 0) {
+          const file = fileInput.files[0];
+          if (file.size > 1000000) { // 1MB limit for firestore
+             Swal.showValidationMessage('Ukuran file maksimal 1MB. Gunakan URL (YouTube dll) untuk lagu berukuran besar.');
+             return false;
+          }
+          songUrl = await new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = (e) => resolve(e.target?.result as string);
+            reader.readAsDataURL(file);
+          });
+        }
+
         return {
           title: (document.getElementById('swal-title') as HTMLInputElement).value.trim(),
           description: (document.getElementById('swal-desc') as HTMLTextAreaElement).value.trim(),
-          songUrl: (document.getElementById('swal-song-url') as HTMLInputElement).value.trim(),
+          songUrl: songUrl,
           songStartTime: parseInt((document.getElementById('swal-song-start') as HTMLInputElement).value) || 0
         };
       }
@@ -287,32 +308,6 @@ export default function Album() {
 
         {/* Music Player & Admin Controls */}
         <div className="mt-8 flex flex-col items-center justify-center gap-4 z-10 w-full max-w-md">
-          {isSpotify && spotifyEmbedUrl ? (
-            <div className="w-full mb-4">
-              <iframe 
-                src={spotifyEmbedUrl} 
-                width="100%" 
-                height="80" 
-                frameBorder="0" 
-                allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
-                loading="lazy"
-                style={{ borderRadius: '12px' }}
-              ></iframe>
-            </div>
-          ) : settings.songUrl && (
-            <button 
-              onClick={togglePlay}
-              className="bg-white/10 hover:bg-white/20 text-white border border-white/20 px-6 py-3 rounded-full flex items-center justify-center gap-3 backdrop-blur-md transition-all shadow-xl group w-full mb-4"
-            >
-              <div className="bg-pink-500 rounded-full p-1.5 text-white shadow-lg group-hover:scale-110 transition-transform">
-                {isPlaying ? <Pause size={16} /> : <Play size={16} className="ml-0.5" />}
-              </div>
-              <span className="font-medium tracking-wide">
-                {isPlaying ? 'Jeda Lagu' : 'Putar Lagu Kenangan'}
-              </span>
-            </button>
-          )}
-
           {user?.role === 'admin' && (
             <div className="flex flex-wrap justify-center gap-4 w-full">
               <button 

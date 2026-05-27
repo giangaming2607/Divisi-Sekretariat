@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Hammer, CheckCircle } from 'lucide-react';
+import { Hammer, CheckCircle, LayoutGrid, Eye } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { clientGetRenovasiSettings, clientSaveRenovasiSettings, RenovasiSettings } from '../lib/firebaseClient';
 import { cn } from '../lib/utils';
@@ -87,25 +87,34 @@ export default function RenovasiAdmin() {
                     )}
                   </div>
                   
-                  <button
-                    onClick={() => toggleRenovasi(menu.path, isUnderRenovation)}
-                    disabled={saving === menu.path}
-                    className={cn(
-                      "flex items-center justify-center gap-2 px-4 py-2 rounded-xl transition-all duration-300 min-w-[140px]",
-                      isUnderRenovation 
-                        ? "bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500/20" 
-                        : "bg-blue-500/10 text-blue-500 border border-blue-500/20 hover:bg-blue-500/20",
-                      saving === menu.path && "opacity-50 cursor-not-allowed"
-                    )}
-                  >
-                    {saving === menu.path ? (
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
-                    ) : isUnderRenovation ? (
-                      <>Nonaktifkan Renovasi</>
-                    ) : (
-                      <><Hammer size={16} /> Renovasi</>
-                    )}
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => window.open(menu.path, '_blank')}
+                      className="px-4 py-2 bg-gray-700/50 hover:bg-gray-700 text-gray-300 rounded-xl transition-all border border-gray-600/50 flex items-center justify-center gap-2"
+                      title="Preview Halaman"
+                    >
+                      <Eye size={16} /> Preview
+                    </button>
+                    <button
+                      onClick={() => toggleRenovasi(menu.path, isUnderRenovation)}
+                      disabled={saving === menu.path}
+                      className={cn(
+                        "flex items-center justify-center gap-2 px-4 py-2 rounded-xl transition-all duration-300 min-w-[140px]",
+                        isUnderRenovation 
+                          ? "bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500/20" 
+                          : "bg-blue-500/10 text-blue-500 border border-blue-500/20 hover:bg-blue-500/20",
+                        saving === menu.path && "opacity-50 cursor-not-allowed"
+                      )}
+                    >
+                      {saving === menu.path ? (
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
+                      ) : isUnderRenovation ? (
+                        <>Nonaktifkan Renovasi</>
+                      ) : (
+                        <><Hammer size={16} /> Renovasi</>
+                      )}
+                    </button>
+                  </div>
                 </div>
               );
             })}
