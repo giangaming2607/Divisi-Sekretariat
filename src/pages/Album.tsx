@@ -458,6 +458,31 @@ export default function Album() {
         </motion.div>
       )}
       </AnimatePresence>
+
+      {/* Floating Music Control */}
+      {!isSpotify && settings.songUrl && (
+        <motion.div
+          initial={{ scale: 0, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ delay: 0.5, type: "spring" }}
+          className="fixed bottom-6 right-6 z-[60] flex items-center gap-3 bg-gray-900/90 backdrop-blur-md p-2 pr-4 rounded-full border border-white/10 shadow-[0_0_20px_rgba(236,72,153,0.3)]"
+        >
+          <button
+            onClick={() => setIsPlaying(!isPlaying)}
+            className="bg-pink-500 hover:bg-pink-600 text-white p-3 rounded-full shadow-lg transition-transform hover:scale-105"
+          >
+            {isPlaying ? <Pause size={20} /> : <Play size={20} className="ml-1" />}
+          </button>
+          <div className="flex flex-col cursor-pointer" onClick={() => setIsPlaying(!isPlaying)}>
+            <span className="text-[11px] font-bold text-white uppercase tracking-wider">
+              {isPlaying ? 'Memutar Lagu' : 'Lagu Jeda'}
+            </span>
+            <span className="text-[9px] text-pink-300 font-medium">
+              Ketuk untuk {isPlaying ? 'jeda' : 'lanjutkan'}
+            </span>
+          </div>
+        </motion.div>
+      )}
     </motion.div>
   );
 }
