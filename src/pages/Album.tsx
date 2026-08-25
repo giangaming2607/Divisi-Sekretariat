@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Swal from 'sweetalert2';
 import { Camera, Music, Image as ImageIcon, Trash2, Settings, Plus, Play, Pause, Upload, ZoomIn, ZoomOut, LayoutGrid, X } from 'lucide-react';
 import ReactPlayer from 'react-player';
+import { motion, AnimatePresence } from 'motion/react';
 import { useAuthStore } from '../lib/store';
 import { cn } from '../lib/utils';
 import {
@@ -73,16 +74,12 @@ export default function Album() {
           <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Deskripsi Album</label>
           <textarea id="swal-desc" class="swal2-textarea !m-0 !w-full bg-gray-900 border border-gray-700 text-white rounded-xl mb-3 text-sm" placeholder="Deskripsi album...">${settings.description || 'Menyimpan setiap momen berharga, suka duka, dan perjuangan kita bersama di ruang Sekretariat.'}</textarea>
 
-          <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Upload Lagu (Audio File)</label>
-          <input type="file" id="swal-song-file" accept="audio/*" class="w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-pink-500/20 file:text-pink-400 hover:file:bg-pink-500/30 mb-2">
-          
-          <div class="text-center text-sm text-gray-500 mb-2 font-bold">- ATAU -</div>
-
-          <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">URL Lagu (MP3 / YouTube / Spotify)</label>
-          <div class="flex gap-2 items-center mb-4">
-            <input id="swal-song-url" value="${settings.songUrl || ''}" class="swal2-input !m-0 !w-full bg-gray-900 border border-gray-700 text-white rounded-xl" placeholder="Link YouTube, Spotify, atau MP3">
+          <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Upload Lagu (Hanya File MP3)</label>
+          <div class="flex gap-2 items-center mb-1">
+            <input type="file" id="swal-song-file" accept="audio/*" class="w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-pink-500/20 file:text-pink-400 hover:file:bg-pink-500/30">
             <button type="button" id="swal-test-audio" class="p-3 bg-pink-500 hover:bg-pink-600 text-white rounded-xl text-xs font-bold transition-colors w-max whitespace-nowrap shadow-lg flex-shrink-0">Test</button>
           </div>
+          <p class="text-[10px] text-pink-400 mb-3">* Maksimal ukuran file 1MB. Gunakan file audio yang lebih kecil (kompresi MP3) karena database terbatas.</p>
           
           <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Mulai Dari (Detik)</label>
           <input id="swal-song-start" type="number" min="0" value="${settings.songStartTime || 0}" class="swal2-input !m-0 !w-full bg-gray-900 border border-gray-700 text-white rounded-xl mb-1" placeholder="0">
@@ -98,38 +95,31 @@ export default function Album() {
       didOpen: () => {
         const testBtn = document.getElementById('swal-test-audio');
         const container = document.getElementById('swal-test-container');
+        const fileInput = document.getElementById('swal-song-file') as HTMLInputElement;
         
         testBtn?.addEventListener('click', () => {
-           const url = (document.getElementById('swal-song-url') as HTMLInputElement).value.trim();
            const startTime = parseInt((document.getElementById('swal-song-start') as HTMLInputElement).value) || 0;
-           if (!url) return;
            
-           if (container) {
-             container.classList.remove('hidden');
-             const isSpotify = url.includes('spotify.com');
-             
-             if (isSpotify) {
-               const trackIdMatch = url.match(/track\/([a-zA-Z0-9]+)/);
-               const embedUrl = trackIdMatch ? `https://open.spotify.com/embed/track/${trackIdMatch[1]}?utm_source=generator` : url;
-               container.innerHTML = `<iframe src="${embedUrl}" width="100%" height="80" frameBorder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" style="border-radius: 12px"></iframe>`;
-             } else if (url.includes('youtube.com') || url.includes('youtu.be')) {
-                 const videoIdMatch = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([^"&?\/\s]{11})/);
-                 const videoId = videoIdMatch ? videoIdMatch[1] : '';
-                 container.innerHTML = `<iframe width="100%" height="80" src="https://www.youtube.com/embed/${videoId}?autoplay=1&start=${startTime}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
-             } else {
-               container.innerHTML = `<audio controls autoplay src="${url}#t=${startTime}" class="w-full h-12 bg-gray-800 rounded-xl"></audio>`;
+           if (fileInput.files && fileInput.files.length > 0) {
+             const file = fileInput.files[0];
+             const objectUrl = URL.createObjectURL(file);
+             if (container) {
+               container.classList.remove('hidden');
+               container.innerHTML = `<audio controls autoplay src="${objectUrl}#t=${startTime}" class="w-full h-12 bg-gray-800 rounded-xl"></audio>`;
              }
+           } else {
+             Swal.showValidationMessage('Silakan pilih file lagu terlebih dahulu');
            }
         });
       },
       preConfirm: async () => {
         const fileInput = document.getElementById('swal-song-file') as HTMLInputElement;
-        let songUrl = (document.getElementById('swal-song-url') as HTMLInputElement).value.trim();
+        let songUrl = settings.songUrl || '';
 
         if (fileInput.files && fileInput.files.length > 0) {
           const file = fileInput.files[0];
           if (file.size > 1000000) { // 1MB limit for firestore
-             Swal.showValidationMessage('Ukuran file maksimal 1MB. Gunakan URL (YouTube dll) untuk lagu berukuran besar.');
+             Swal.showValidationMessage('Ukuran file maksimal 1MB. Gunakan file audio yang lebih kecil.');
              return false;
           }
           songUrl = await new Promise((resolve) => {
@@ -258,7 +248,13 @@ export default function Album() {
   };
 
   return (
-    <div className="space-y-6">
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      transition={{ duration: 0.5 }}
+      className="space-y-6"
+    >
       {!isSpotify && settings.songUrl && (
         <div className="hidden">
           <ReactPlayer 
@@ -292,7 +288,12 @@ export default function Album() {
       )}
 
       {/* Header section designed like a digital invitation */}
-      <div className="bg-gradient-to-br from-pink-900/40 via-purple-900/40 to-blue-900/40 p-10 rounded-[2rem] border border-white/10 shadow-2xl relative overflow-hidden flex flex-col items-center justify-center text-center mt-6">
+      <motion.div 
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ delay: 0.2, duration: 0.6, type: "spring" }}
+        className="bg-gradient-to-br from-pink-900/40 via-purple-900/40 to-blue-900/40 p-10 rounded-[2rem] border border-white/10 shadow-2xl relative overflow-hidden flex flex-col items-center justify-center text-center mt-6"
+      >
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-20 mix-blend-overlay"></div>
         
         <div className="z-10 bg-black/30 p-4 rounded-full backdrop-blur-md mb-6 border border-white/20 animate-pulse">
@@ -325,9 +326,14 @@ export default function Album() {
             </div>
           )}
         </div>
-      </div>
+      </motion.div>
 
-      <div className="flex justify-between items-center mt-8">
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.4 }}
+        className="flex justify-between items-center mt-8"
+      >
          <h3 className="text-xl font-bold dark:text-white flex items-center gap-2">
             <ImageIcon className="text-pink-500" /> Galeri Kenangan
          </h3>
@@ -354,28 +360,48 @@ export default function Album() {
                <ZoomOut size={18} />
             </button>
          </div>
-      </div>
+      </motion.div>
 
       {/* Grid Photos */}
-      <div className={cn(
-        "grid gap-4 transition-all duration-500",
-        gridSize === 'small' && "grid-cols-3 md:grid-cols-4 lg:grid-cols-6",
-        gridSize === 'medium' && "grid-cols-2 md:grid-cols-3 lg:grid-cols-4",
-        gridSize === 'large' && "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
-      )}>
+      <motion.div 
+        layout
+        className={cn(
+          "grid gap-4 transition-all duration-500",
+          gridSize === 'small' && "grid-cols-3 md:grid-cols-4 lg:grid-cols-6",
+          gridSize === 'medium' && "grid-cols-2 md:grid-cols-3 lg:grid-cols-4",
+          gridSize === 'large' && "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
+        )}
+      >
+        <AnimatePresence mode="popLayout">
         {loading ? (
            Array.from({ length: 4 }).map((_, i) => (
-             <div key={i} className="aspect-[4/3] bg-white/5 animate-pulse rounded-2xl border border-gray-200 dark:border-white/10"></div>
+             <motion.div 
+               key={`skeleton-${i}`}
+               initial={{ opacity: 0, scale: 0.8 }}
+               animate={{ opacity: 1, scale: 1 }}
+               exit={{ opacity: 0, scale: 0.8 }}
+               className="aspect-[4/3] bg-white/5 animate-pulse rounded-2xl border border-gray-200 dark:border-white/10"
+             ></motion.div>
            ))
         ) : albums.length === 0 ? (
-           <div className="col-span-full py-20 flex flex-col items-center justify-center text-gray-500">
+           <motion.div 
+             initial={{ opacity: 0 }}
+             animate={{ opacity: 1 }}
+             exit={{ opacity: 0 }}
+             className="col-span-full py-20 flex flex-col items-center justify-center text-gray-500"
+           >
              <ImageIcon size={48} className="mb-4 opacity-50 text-gray-600" />
              <p className="font-semibold text-lg">Belum ada foto kenangan</p>
              <p className="text-sm mt-1">Admin dapat mulai menambahkan momen berharga di sini.</p>
-           </div>
+           </motion.div>
         ) : (
-          albums.map((album) => (
-            <div 
+          albums.map((album, index) => (
+            <motion.div 
+              layout
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              transition={{ delay: index * 0.05 }}
               key={album.id} 
               className="group relative aspect-[4/3] rounded-2xl overflow-hidden shadow-lg border border-gray-200 dark:border-white/10 bg-gray-100 dark:bg-black/20 cursor-pointer"
               onClick={() => setSelectedImage(album.url)}
@@ -397,15 +423,20 @@ export default function Album() {
                   <Trash2 size={16} />
                 </button>
               )}
-            </div>
+            </motion.div>
           ))
         )}
-      </div>
+        </AnimatePresence>
+      </motion.div>
 
       {/* Lightbox for full screen image view */}
+      <AnimatePresence>
       {selectedImage && (
-        <div 
-          className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-xl flex flex-col items-center justify-center p-4 sm:p-8 animate-in fade-in duration-200"
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-xl flex flex-col items-center justify-center p-4 sm:p-8"
           onClick={() => setSelectedImage(null)}
         >
            <button 
@@ -415,14 +446,18 @@ export default function Album() {
              <X size={24} />
            </button>
            
-           <img 
+           <motion.img 
+              initial={{ scale: 0.8 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.8 }}
               src={selectedImage} 
               alt="Fullscreen view" 
-              className="max-w-full max-h-[85vh] object-contain rounded-xl shadow-2xl animate-in zoom-in-95 duration-300"
-              onClick={(e) => e.stopPropagation()}
+              className="max-w-full max-h-[85vh] object-contain rounded-xl shadow-2xl"
+              onClick={(e: React.MouseEvent) => e.stopPropagation()}
            />
-        </div>
+        </motion.div>
       )}
-    </div>
+      </AnimatePresence>
+    </motion.div>
   );
 }
